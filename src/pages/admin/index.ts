@@ -1,0 +1,6 @@
+export { AdminDashboard } from './AdminDashboard'
+export { CreateCourse } from './CreateCourse'
+export { CourseBuilder } from './CourseBuilder'
+export { ManageEmployees } from './ManageEmployees'
+export { AdminAnalytics } from './AdminAnalytics'
+export { BillingPage } from './BillingPage'

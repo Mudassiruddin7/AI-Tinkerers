@@ -1,0 +1,522 @@
+{
+  "name": "PDF to Training Video Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-pdf",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "PDF Processing Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "pdf-processing"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.body.pdfUrl}}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false
+            }
+          }
+        }
+      },
+      "id": "download-pdf",
+      "name": "Download PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract text from PDF using pdf-parse\nconst pdfBuffer = items[0].binary?.data?.data;\nif (!pdfBuffer) {\n  throw new Error('No PDF data received');\n}\n\n// Forward to text extraction service\nreturn [{\n  json: {\n    courseId: $node['PDF Processing Webhook'].json.body.courseId,\n    organizationId: $node['PDF Processing Webhook'].json.body.organizationId,\n    fileName: $node['PDF Processing Webhook'].json.body.fileName,\n    pdfData: pdfBuffer\n  }\n}];"
+      },
+      "id": "prepare-extraction",
+      "name": "Prepare for Extraction",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/api/process/extract-text",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ courseId: $json.courseId, text: $binary.data?.data }) }}",
+        "options": {}
+      },
+      "id": "extract-text",
+      "name": "Extract PDF Text",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/api/process/generate-content",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ courseId: $json.courseId, organizationId: $json.organizationId, text: $json.extractedText, numberOfSegments: 5, numberOfQuizzes: 3 }) }}",
+        "options": {}
+      },
+      "id": "generate-content",
+      "name": "Generate Content with Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-segments",
+      "name": "Split into Segments",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/api/process/generate-audio",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ courseId: $json.courseId, segmentIndex: $json.segmentIndex, text: $json.script, voiceId: $json.voiceId }) }}",
+        "options": {}
+      },
+      "id": "generate-audio",
+      "name": "Generate Audio (ElevenLabs)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "merge-audio",
+      "name": "Merge Audio Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prepare FFmpeg video generation command\nconst segments = items.map((item, index) => ({\n  index,\n  audioUrl: item.json.audioUrl,\n  duration: item.json.duration,\n  script: item.json.script\n}));\n\nconst courseId = items[0].json.courseId;\nconst employeePhotos = items[0].json.employeePhotos || [];\n\nreturn [{\n  json: {\n    courseId,\n    segments,\n    employeePhotos,\n    outputFormat: 'mp4',\n    resolution: '1080p'\n  }\n}];"
+      },
+      "id": "prepare-video-gen",
+      "name": "Prepare Video Generation",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1760, 0]
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg",
+        "arguments": "={{ '-y -f concat -safe 0 -i ' + $json.concatFile + ' -i ' + $json.audioFile + ' -c:v libx264 -c:a aac -b:a 192k -pix_fmt yuv420p -vf \"scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2\" ' + $json.outputPath }}",
+        "options": {}
+      },
+      "id": "ffmpeg-render",
+      "name": "FFmpeg Video Render",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1980, 0],
+      "notes": "Note: This requires FFmpeg to be installed on the n8n server. For cloud deployments, consider using a video processing service like Shotstack or Creatomate API."
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_URL}}/storage/v1/object/videos/{{$json.courseId}}/final.mp4",
+        "method": "PUT",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_SERVICE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "options": {}
+      },
+      "id": "upload-video",
+      "name": "Upload to Supabase Storage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2200, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/episodes",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_SERVICE_KEY}}"
+            },
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ course_id: $json.courseId, title: $json.title, description: $json.description, video_url: $json.videoUrl, duration: $json.duration, order_index: $json.orderIndex, status: 'published' }) }}",
+        "options": {}
+      },
+      "id": "create-episode",
+      "name": "Create Episode Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2420, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/quiz_questions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_SERVICE_KEY}}"
+            },
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.quizQuestions) }}",
+        "options": {}
+      },
+      "id": "create-quizzes",
+      "name": "Create Quiz Questions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2640, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/courses?id=eq.{{$json.courseId}}",
+        "method": "PATCH",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.SUPABASE_SERVICE_KEY}}"
+            },
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: 'published', processing_completed_at: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "id": "update-course-status",
+      "name": "Update Course Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2860, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.BACKEND_URL}}/api/notifications/send",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'course_ready', courseId: $json.courseId, organizationId: $json.organizationId, message: 'Your training video is ready!' }) }}",
+        "options": {}
+      },
+      "id": "send-notification",
+      "name": "Send Completion Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [3080, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.success}}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "id": "check-success",
+      "name": "Check Processing Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [3300, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log successful completion\nreturn [{\n  json: {\n    status: 'completed',\n    courseId: $json.courseId,\n    videoUrl: $json.videoUrl,\n    completedAt: new Date().toISOString(),\n    message: 'Video processing completed successfully'\n  }\n}];"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3520, -100]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle error and notify\nreturn [{\n  json: {\n    status: 'failed',\n    courseId: $json.courseId,\n    error: $json.error || 'Unknown processing error',\n    failedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3520, 100]
+    }
+  ],
+  "connections": {
+    "PDF Processing Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download PDF": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Extraction": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF Text": {
+      "main": [
+        [
+          {
+            "node": "Generate Content with Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Content with Claude": {
+      "main": [
+        [
+          {
+            "node": "Split into Segments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into Segments": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio (ElevenLabs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio (ElevenLabs)": {
+      "main": [
+        [
+          {
+            "node": "Merge Audio Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Audio Results": {
+      "main": [
+        [
+          {
+            "node": "Prepare Video Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Video Generation": {
+      "main": [
+        [
+          {
+            "node": "FFmpeg Video Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FFmpeg Video Render": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase Storage": {
+      "main": [
+        [
+          {
+            "node": "Create Episode Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Episode Record": {
+      "main": [
+        [
+          {
+            "node": "Create Quiz Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Quiz Questions": {
+      "main": [
+        [
+          {
+            "node": "Update Course Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Course Status": {
+      "main": [
+        [
+          {
+            "node": "Send Completion Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Completion Notification": {
+      "main": [
+        [
+          {
+            "node": "Check Processing Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Processing Success": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "name": "training-platform",
+      "id": "1"
+    },
+    {
+      "name": "video-generation",
+      "id": "2"
+    }
+  ]
+}
