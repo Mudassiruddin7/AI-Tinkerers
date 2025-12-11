@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -11,10 +11,11 @@ import {
   Play,
   Edit,
   Trash2,
-  Eye,
+  RefreshCw,
 } from 'lucide-react'
 import { Card, CardContent, Button, StatusBadge, ProgressBar, ConfirmModal } from '@/components/ui'
 import { formatDate, formatDuration } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import type { Course } from '@/types'
 
 // Mock data for demo
@@ -70,16 +71,101 @@ const stats = [
   { label: 'Avg. Watch Time', value: '4:32', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100' },
 ]
 
+interface DBCourse {
+  id: string
+  title: string
+  description: string
+  thumbnail_url: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+interface DBEpisode {
+  id: string
+  course_id: string
+  title: string
+  description: string
+  episode_order: number
+  duration: number
+  video_url: string
+  status: string
+}
+
 export function AdminDashboard() {
-  const [courses, setCourses] = useState(mockCourses)
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; courseId: string | null }>({
     open: false,
     courseId: null,
   })
   const [openMenu, setOpenMenu] = useState<string | null>(null)
 
-  const handleDeleteCourse = () => {
+  // Fetch courses from database
+  const fetchCourses = async () => {
+    setLoading(true)
+    try {
+      // Fetch courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (coursesError) throw coursesError
+
+      // Fetch episodes for each course
+      const coursesWithEpisodes: Course[] = await Promise.all(
+        (coursesData as DBCourse[]).map(async (course) => {
+          const { data: episodes } = await supabase
+            .from('episodes')
+            .select('*')
+            .eq('course_id', course.id)
+            .order('episode_order', { ascending: true })
+
+          return {
+            id: course.id,
+            organizationId: 'org-1',
+            title: course.title,
+            description: course.description || '',
+            thumbnailUrl: course.thumbnail_url,
+            status: course.status as 'draft' | 'processing' | 'published',
+            createdBy: 'user-1',
+            createdAt: course.created_at,
+            updatedAt: course.updated_at,
+            episodes: (episodes as DBEpisode[] || []).map(ep => ({
+              id: ep.id,
+              courseId: ep.course_id,
+              title: ep.title,
+              description: ep.description || '',
+              order: ep.episode_order,
+              duration: ep.duration || 0,
+              status: ep.status as 'processing' | 'ready' | 'failed',
+              videoUrl: ep.video_url,
+              scenes: [],
+              quizQuestions: [],
+              createdAt: '',
+              updatedAt: '',
+            })),
+          }
+        })
+      )
+
+      setCourses(coursesWithEpisodes)
+    } catch (error) {
+      console.error('Error fetching courses:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCourses()
+  }, [])
+
+  const handleDeleteCourse = async () => {
     if (deleteModal.courseId) {
+      // Delete from database
+      await supabase.from('courses').delete().eq('id', deleteModal.courseId)
       setCourses(courses.filter((c) => c.id !== deleteModal.courseId))
       setDeleteModal({ open: false, courseId: null })
     }
@@ -97,9 +183,19 @@ export function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Manage your training content and track progress</p>
         </div>
-        <Link to="/admin/create">
-          <Button leftIcon={<Plus className="w-4 h-4" />}>Create Course</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Button 
+            variant="secondary" 
+            leftIcon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+            onClick={fetchCourses}
+            disabled={loading}
+          >
+            Refresh
+          </Button>
+          <Link to="/admin/create">
+            <Button leftIcon={<Plus className="w-4 h-4" />}>Create Course</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -188,16 +284,17 @@ export function AdminDashboard() {
                       {openMenu === course.id && (
                         <div className="absolute right-0 top-8 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                           <Link
+                            to={`/admin/play/${course.id}`}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <Play className="w-4 h-4" /> Preview
+                          </Link>
+                          <Link
                             to={`/admin/course/${course.id}`}
                             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                           >
                             <Edit className="w-4 h-4" /> Edit
                           </Link>
-                          <button
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full"
-                          >
-                            <Eye className="w-4 h-4" /> Preview
-                          </button>
                           <button
                             onClick={() => {
                               setDeleteModal({ open: true, courseId: course.id })
@@ -223,7 +320,7 @@ export function AdminDashboard() {
                       Updated {formatDate(course.updatedAt)}
                     </span>
                     {course.status === 'published' && (
-                      <Link to={`/learn/video/${course.episodes[0]?.id}`}>
+                      <Link to={`/admin/play/${course.id}`}>
                         <Button size="sm" variant="ghost" leftIcon={<Play className="w-3 h-3" />}>
                           Preview
                         </Button>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
+import { useState } from 'react'
 import {
   Play,
   BookOpen,
@@ -13,37 +14,208 @@ import {
   Mic,
   CheckCircle2,
   Brain,
-  Quote
+  Upload,
+  FileText,
+  Zap,
+  Star,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Target,
+  Award,
+  TrendingUp,
+  Video,
+  GraduationCap,
+  Building2,
+  Mail,
+  Linkedin,
+  Twitter
 } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 // Check if Clerk is available
 const isClerkEnabled = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
+// AI Mascot Component (similar to Maxi)
+const AIMascot = ({ expression = 'wave', className = '' }: { expression?: 'wave' | 'happy' | 'think' | 'celebrate' | 'point', className?: string }) => {
+  const expressions = {
+    wave: '👋',
+    happy: '😊',
+    think: '🤔',
+    celebrate: '🎉',
+    point: '👉'
+  }
+  
+  return (
+    <motion.div 
+      className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl shadow-lg ${className}`}
+      animate={{ y: [0, -5, 0] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <span className="text-3xl">{expressions[expression]}</span>
+    </motion.div>
+  )
+}
+
+// Floating Subject Icons
+const FloatingSubjects = ({ side }: { side: 'left' | 'right' }) => {
+  const leftSubjects = [
+    { icon: '📊', label: 'Analytics', delay: 0 },
+    { icon: '📋', label: 'Compliance', delay: 0.5 },
+    { icon: '🛡️', label: 'Security', delay: 1 },
+  ]
+  
+  const rightSubjects = [
+    { icon: '💼', label: 'HR', delay: 0.2 },
+    { icon: '📈', label: 'Sales', delay: 0.7 },
+    { icon: '🎯', label: 'Leadership', delay: 1.2 },
+  ]
+  
+  const subjects = side === 'left' ? leftSubjects : rightSubjects
+  
+  return (
+    <div className={`hidden lg:flex flex-col gap-4 ${side === 'left' ? 'items-end' : 'items-start'}`}>
+      {subjects.map((subject, i) => (
+        <motion.div
+          key={subject.label}
+          initial={{ opacity: 0, x: side === 'left' ? -20 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: subject.delay, duration: 0.5 }}
+          className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md border border-gray-100"
+        >
+          <span className="text-xl">{subject.icon}</span>
+          <span className="text-sm font-medium text-slate-700">{subject.label}</span>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+// Feature Card Component
+const FeatureShowcaseCard = ({ 
+  title, 
+  description, 
+  icon: Icon, 
+  color 
+}: { 
+  title: string
+  description: string
+  icon: any
+  color: string 
+}) => (
+  <motion.div
+    whileHover={{ y: -5, scale: 1.02 }}
+    className="min-w-[300px] sm:min-w-[350px] p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
+  >
+    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4`}>
+      <Icon className="w-6 h-6" />
+    </div>
+    <h4 className="text-lg font-bold text-slate-900 mb-2">{title}</h4>
+    <p className="text-slate-600 text-sm leading-relaxed">{description}</p>
+  </motion.div>
+)
+
+// Testimonial Card
+const TestimonialCard = ({ quote, author, role, image }: { quote: string, author: string, role: string, image: string }) => (
+  <div className="min-w-[320px] sm:min-w-[380px] p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <p className="text-slate-600 mb-4 text-sm leading-relaxed">"{quote}"</p>
+    <div className="flex items-center gap-1 mb-4">
+      {[...Array(5)].map((_, i) => (
+        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+      ))}
+    </div>
+    <div className="flex items-center gap-3">
+      <img src={image} alt={author} className="w-10 h-10 rounded-full object-cover" />
+      <div>
+        <div className="font-semibold text-slate-900 text-sm">{author}</div>
+        <div className="text-xs text-slate-500">{role}</div>
+      </div>
+    </div>
+  </div>
+)
+
+// FAQ Item
+const FAQItem = ({ question, answer, isOpen, onClick }: { question: string, answer: string, isOpen: boolean, onClick: () => void }) => (
+  <div className="border-b border-gray-100 last:border-0">
+    <button
+      onClick={onClick}
+      className="w-full py-5 flex items-center justify-between text-left hover:text-emerald-600 transition-colors"
+    >
+      <span className="font-semibold text-slate-900 pr-4">{question}</span>
+      {isOpen ? (
+        <ChevronUp className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+      ) : (
+        <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0" />
+      )}
+    </button>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <p className="pb-5 text-slate-600 leading-relaxed">{answer}</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+)
+
+// Company Logo Marquee
+const CompanyMarquee = () => {
+  const companies = [
+    'TechCorp', 'Innovate Inc', 'FutureSoft', 'GlobalTech', 'NextGen', 'CloudBase', 'DataFlow', 'SmartOps'
+  ]
+  
+  return (
+    <div className="relative overflow-hidden py-4">
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10" />
+      <motion.div
+        className="flex gap-12 items-center"
+        animate={{ x: [0, -1000] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      >
+        {[...companies, ...companies].map((company, i) => (
+          <div key={i} className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
+            <Building2 className="w-6 h-6" />
+            <span className="font-semibold text-lg">{company}</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  )
+}
+
 export function LandingPage() {
+  const [openFAQ, setOpenFAQ] = useState<number | null>(0)
+
   const features = [
     {
       icon: Sparkles,
-      title: 'AI-Powered Video Generation',
-      description: 'Upload PDFs and employee photos to automatically create engaging training videos with natural narration.',
-      color: 'bg-blue-50 text-blue-600',
+      title: 'AI Video Generation',
+      description: 'Upload PDFs and photos to create engaging training videos with natural AI narration automatically.',
+      color: 'bg-emerald-50 text-emerald-600',
     },
     {
       icon: Mic,
       title: 'Voice Cloning',
-      description: 'Use employee voices (with consent) to make training feel personal and familiar.',
+      description: 'Use employee voices (with consent) to make training feel personal and familiar to your team.',
       color: 'bg-purple-50 text-purple-600',
     },
     {
-      icon: Users,
-      title: 'Interactive Learning',
-      description: 'Timed quizzes keep learners engaged and measure comprehension in real-time.',
-      color: 'bg-green-50 text-green-600',
+      icon: Target,
+      title: 'Smart Quizzes',
+      description: 'Timed quizzes measure comprehension in real-time and keep learners engaged throughout.',
+      color: 'bg-blue-50 text-blue-600',
     },
     {
       icon: BarChart3,
-      title: 'Analytics Dashboard',
-      description: 'Track completion rates, quiz scores, and identify knowledge gaps across your team.',
+      title: 'Deep Analytics',
+      description: 'Track completion rates, quiz scores, and identify knowledge gaps across your entire team.',
       color: 'bg-orange-50 text-orange-600',
     },
     {
@@ -55,27 +227,41 @@ export function LandingPage() {
     {
       icon: Clock,
       title: 'Fast Creation',
-      description: 'Create professional training content in minutes, not weeks.',
+      description: 'Create professional training content in minutes, not weeks. Save time and resources.',
       color: 'bg-indigo-50 text-indigo-600',
     },
   ]
 
-  const stats = [
-    { value: '60%', label: 'Higher completion rates' },
-    { value: '20 min', label: 'Time to create an episode' },
-    { value: '80%', label: 'Average quiz scores' },
-    { value: '3x', label: 'Better retention' },
+  const howItWorks = [
+    {
+      icon: Upload,
+      title: 'Upload Your Content',
+      description: 'Drop your PDFs, documents, or training materials into LearnFlow.',
+      color: 'bg-emerald-500',
+    },
+    {
+      icon: Brain,
+      title: 'AI Creates Videos',
+      description: 'Our AI transforms content into engaging video episodes with narration.',
+      color: 'bg-teal-500',
+    },
+    {
+      icon: TrendingUp,
+      title: 'Track & Improve',
+      description: 'Monitor progress, quiz results, and optimize your training program.',
+      color: 'bg-cyan-500',
+    },
   ]
 
   const testimonials = [
     {
-      quote: "LearnFlow has completely transformed how we do compliance training. It's no longer a chore.",
+      quote: "LearnFlow has completely transformed how we do compliance training. It's no longer a chore for our employees.",
       author: "Sarah Chen",
       role: "HR Director, TechCorp",
       image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=faces"
     },
     {
-      quote: "The AI voice cloning is incredibly natural. Our employees love hearing familiar voices.",
+      quote: "The AI voice cloning is incredibly natural. Our employees love hearing familiar voices in training.",
       author: "Michael Ross",
       role: "L&D Manager, Innovate Inc",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=faces"
@@ -85,38 +271,89 @@ export function LandingPage() {
       author: "Jessica Wu",
       role: "Training Lead, FutureSoft",
       image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=faces"
-    }
+    },
+    {
+      quote: "Creating training content used to take weeks. Now we do it in hours with better results.",
+      author: "David Kim",
+      role: "CEO, NextGen",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces"
+    },
+    {
+      quote: "The analytics dashboard gives us insights we never had before. Game changer for L&D.",
+      author: "Emily Brown",
+      role: "VP of People, CloudBase",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
+    },
+  ]
+
+  const faqs = [
+    {
+      question: "What makes LearnFlow different from other training platforms?",
+      answer: "LearnFlow uses AI to automatically transform your existing documents into engaging video content with natural voice narration. Unlike traditional platforms that require manual content creation, we automate the entire process while keeping it personalized with voice cloning technology."
+    },
+    {
+      question: "How does the AI video generation work?",
+      answer: "Simply upload your PDF, document, or training material. Our AI analyzes the content, creates a script, generates visuals, and produces professional video episodes with natural voice narration. You can review and edit before publishing to your team."
+    },
+    {
+      question: "Is voice cloning ethical and secure?",
+      answer: "Absolutely. We require explicit consent from employees before using their voice. All voice data is encrypted, stored securely, and only used for authorized training content. We maintain full audit trails for GDPR compliance."
+    },
+    {
+      question: "Can I use my own training materials?",
+      answer: "Yes! LearnFlow is designed to work with your existing content. Upload PDFs, PowerPoints, documents, or even paste text directly. Our AI handles the transformation into engaging video format."
+    },
+    {
+      question: "How long does it take to create a training video?",
+      answer: "Most training videos can be created in 10-20 minutes depending on content length. What used to take weeks of production can now be done in a single sitting."
+    },
+    {
+      question: "What kind of analytics do you provide?",
+      answer: "We track completion rates, quiz scores, time spent, engagement patterns, and knowledge gaps. You can see individual and team-level insights, identify struggling employees, and optimize your training content based on data."
+    },
   ]
 
   return (
-    <div className="min-h-screen bg-white selection:bg-primary-100 font-sans">
+    <div className="min-h-screen bg-white selection:bg-emerald-100 font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-600/20">
+            <Link to="/" className="flex items-center gap-2 cursor-pointer">
+              <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-slate-900 tracking-tight">LearnFlow</span>
-            </div>
-            <div className="flex items-center gap-4">
+              <span className="font-bold text-xl text-slate-900">LearnFlow</span>
+            </Link>
+            
+            <nav className="hidden md:flex items-center gap-8">
+              <a href="#features" className="text-slate-600 hover:text-emerald-600 font-medium text-sm transition-colors">Features</a>
+              <a href="#how-it-works" className="text-slate-600 hover:text-emerald-600 font-medium text-sm transition-colors">AI</a>
+              <a href="#testimonials" className="text-slate-600 hover:text-emerald-600 font-medium text-sm transition-colors">Testimonials</a>
+              <a href="#faq" className="text-slate-600 hover:text-emerald-600 font-medium text-sm transition-colors">FAQs</a>
+            </nav>
+
+            <div className="flex items-center gap-3">
               {isClerkEnabled ? (
                 <>
                   <SignedOut>
                     <Link
                       to="/sign-in"
-                      className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+                      className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors hidden sm:block"
                     >
                       Sign In
                     </Link>
                     <Link to="/sign-up">
-                      <Button className="shadow-lg shadow-primary-600/20">Get Started</Button>
+                      <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 border-0">
+                        Get Started
+                      </Button>
                     </Link>
                   </SignedOut>
                   <SignedIn>
                     <Link to="/admin">
-                      <Button className="shadow-lg shadow-primary-600/20">Go to Dashboard</Button>
+                      <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 border-0">
+                        Dashboard
+                      </Button>
                     </Link>
                   </SignedIn>
                 </>
@@ -126,7 +363,9 @@ export function LandingPage() {
                     <Button variant="secondary" className="hidden sm:flex">Admin Demo</Button>
                   </Link>
                   <Link to="/employee">
-                    <Button className="shadow-lg shadow-primary-600/20">Employee Demo</Button>
+                    <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 border-0">
+                      Try Demo
+                    </Button>
                   </Link>
                 </>
               )}
@@ -136,255 +375,361 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary-100/30 rounded-full blur-3xl -z-10" />
-        
-        <div className="max-w-7xl mx-auto relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium mb-8 shadow-sm hover:shadow-md transition-shadow cursor-default">
-              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-slate-600">AI-Powered Corporate Training</span>
-            </div>
-            
-            <h1 className="text-5xl sm:text-7xl font-bold text-slate-900 leading-[1.1] mb-8 tracking-tight">
-              Turn Boring PDFs into{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">
-                Engaging Videos
-              </span>
-            </h1>
-            
-            <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Transform your compliance documents and training materials into short, interactive video episodes that employees actually want to watch.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/sign-up">
-                <Button size="lg" className="h-12 px-8 text-lg shadow-xl shadow-primary-600/20 hover:shadow-2xl hover:shadow-primary-600/30 transition-all">
-                  Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Button variant="secondary" size="lg" className="h-12 px-8 text-lg bg-white/80 backdrop-blur-sm">
-                <Play className="w-5 h-5 mr-2 text-primary-600" /> Watch Demo
-              </Button>
-            </div>
+      <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            {/* Left floating subjects */}
+            <FloatingSubjects side="left" />
 
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                <span>No credit card required</span>
+            {/* Center content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-2xl mx-auto"
+            >
+              {/* Mascot with title */}
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900">
+                  Meet <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Flow</span>
+                </h1>
+                <AIMascot expression="wave" className="w-14 h-14 sm:w-16 sm:h-16" />
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                <span>14-day free trial</span>
+              
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+                Your AI Training Creator
+              </h2>
+              
+              <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
+                Transform boring PDFs into engaging video courses. Get instant AI-powered content creation, personalized learning paths, and real-time analytics.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/sign-up">
+                  <Button 
+                    size="lg" 
+                    className="h-14 px-8 text-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-xl shadow-emerald-500/25 border-0 rounded-full"
+                  >
+                    Start Learning with AI
+                    <span className="ml-2 text-emerald-200">— it's free</span>
+                  </Button>
+                </Link>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Hero Image/Video Preview */}
+              {/* Decorative arrow */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-4"
+              >
+                <svg className="w-16 h-8 mx-auto text-emerald-300" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 16C2 16 20 2 32 16C44 30 62 16 62 16" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="4 4"/>
+                  <path d="M54 12L62 16L54 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </motion.div>
+            </motion.div>
+
+            {/* Right floating subjects */}
+            <FloatingSubjects side="right" />
+          </div>
+
+          {/* Hero Image/Dashboard Preview */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-20 relative max-w-5xl mx-auto"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-12 relative max-w-5xl mx-auto"
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-slate-900 aspect-video group cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-              
-              {/* UI Mockup Elements */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform duration-300 border border-white/20">
-                  <Play className="w-10 h-10 text-white ml-1 fill-white" />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+              {/* Mock Dashboard UI */}
+              <div className="bg-slate-900 px-4 py-3 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1 bg-slate-800 rounded-lg text-slate-400 text-xs">app.learnflow.ai</div>
                 </div>
               </div>
               
-              {/* Floating Elements */}
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-10 left-10 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hidden sm:block"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
-                    <Brain className="w-6 h-6 text-primary-400" />
+              <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 p-6 sm:p-8">
+                <div className="h-full grid md:grid-cols-3 gap-4">
+                  {/* Sidebar */}
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg" />
+                      <span className="font-semibold text-slate-900 text-sm">Courses</span>
+                    </div>
+                    <div className="space-y-2">
+                      {['Compliance 101', 'Security Training', 'HR Policies'].map((course, i) => (
+                        <div key={i} className={`p-2 rounded-lg text-xs ${i === 0 ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-600 hover:bg-gray-50'}`}>
+                          {course}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-white text-sm font-medium">AI Processing</div>
-                    <div className="text-white/60 text-xs">Generating script...</div>
+                  
+                  {/* Main content */}
+                  <div className="md:col-span-2 bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col">
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 mx-auto mb-4 bg-slate-900 rounded-2xl flex items-center justify-center">
+                          <Play className="w-10 h-10 text-white ml-1" />
+                        </div>
+                        <div className="text-slate-900 font-semibold">Compliance Training - Episode 1</div>
+                        <div className="text-slate-500 text-xs mt-1">Duration: 4:32</div>
+                      </div>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="mt-4">
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full w-2/3 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-
-              <motion.div 
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-10 right-10 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hidden sm:block"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-green-400" />
-                  </div>
-                  <div>
-                    <div className="text-white text-sm font-medium">Video Ready</div>
-                    <div className="text-white/60 text-xs">2 mins 30 secs</div>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             </div>
-            
-            {/* Decorative elements */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent-200 rounded-full blur-3xl opacity-30 -z-10" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary-200 rounded-full blur-3xl opacity-30 -z-10" />
+
+            {/* Floating badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 }}
+              className="absolute -top-4 -right-4 sm:top-4 sm:right-4 bg-white rounded-xl p-3 shadow-lg border border-gray-100"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-900">Video Ready!</div>
+                  <div className="text-xs text-slate-500">2 mins ago</div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Trusted By */}
-      <section className="py-10 border-y border-gray-100 bg-gray-50/50">
+      {/* Trusted By Section */}
+      <section className="py-8 bg-gray-50 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm font-medium text-slate-500 mb-8">TRUSTED BY INNOVATIVE TEAMS AT</p>
-          <div className="flex flex-wrap justify-center items-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Placeholder Logos - using text for now but styled like logos */}
-            <div className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-6 h-6 bg-slate-800 rounded-full"></div>Acme Corp</div>
-            <div className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-6 h-6 bg-slate-800 rounded-sm"></div>GlobalTech</div>
-            <div className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-6 h-6 bg-slate-800 rotate-45"></div>Nebula</div>
-            <div className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-6 h-6 bg-slate-800 rounded-tr-xl"></div>FoxRun</div>
-            <div className="text-xl font-bold text-slate-800 flex items-center gap-2"><div className="w-6 h-6 bg-slate-800 rounded-full border-2 border-white ring-2 ring-slate-800"></div>Circle</div>
-          </div>
+          <p className="text-center text-sm text-slate-500 mb-4">
+            Teams trained by <span className="font-medium text-slate-700">innovative companies</span>
+          </p>
+          <CompanyMarquee />
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white relative">
+      {/* AI Features Showcase */}
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl sm:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
-              Everything You Need for <br/>Modern Training
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full text-emerald-700 text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span>Tailored Training</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+              AI That Never Misses a Beat
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              From content creation to analytics, LearnFlow handles the entire training lifecycle with powerful AI tools.
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Flow analyzes your content and creates personalized training videos that employees actually want to watch.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group p-8 bg-white rounded-3xl border border-gray-100 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-900/5 transition-all duration-300"
-              >
-                <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Meet Your AI Tutor Section */}
-      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/20 border border-primary-500/30 rounded-full text-primary-300 text-sm font-medium mb-8">
-                <Sparkles className="w-4 h-4" />
-                <span>Meet Your AI Tutor</span>
-              </div>
-              <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
-                Personalized Learning <br/>
-                <span className="text-primary-400">At Scale</span>
-              </h2>
-              <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                Our AI doesn't just generate videos. It adapts to each employee's learning pace, provides instant feedback on quizzes, and ensures concepts are truly mastered.
-              </p>
-              
-              <div className="space-y-6">
-                {[
-                  { title: 'Instant Feedback', desc: 'Get real-time corrections and explanations.' },
-                  { title: 'Adaptive Pacing', desc: 'Content adjusts to the learner\'s speed.' },
-                  { title: '24/7 Availability', desc: 'Training happens whenever employees are ready.' }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center mt-1">
-                      <CheckCircle2 className="w-5 h-5 text-primary-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white">{item.title}</h4>
-                      <p className="text-slate-400 text-sm">{item.desc}</p>
-                    </div>
-                  </div>
+          {/* Scrolling Feature Cards */}
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+            
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="flex gap-4 w-max">
+                {features.map((feature, index) => (
+                  <FeatureShowcaseCard
+                    key={feature.title}
+                    title={feature.title}
+                    description={feature.description}
+                    icon={feature.icon}
+                    color={feature.color}
+                  />
                 ))}
               </div>
             </div>
-            
+          </div>
+        </div>
+      </section>
+
+      {/* How Flow Works Section */}
+      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Illustration */}
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full blur-[100px] opacity-20" />
-              <div className="relative bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-                {/* Chat Interface Mockup */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 sm:p-12">
+                {/* Stack visualization */}
                 <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-                      <Brain className="w-6 h-6 text-white" />
+                  <motion.div 
+                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-900">Content Layer</div>
+                        <div className="text-xs text-slate-500">PDFs, Docs, Materials</div>
+                      </div>
                     </div>
-                    <div className="bg-slate-700/50 rounded-2xl rounded-tl-none p-4 text-sm text-slate-200">
-                      Hi! I noticed you paused on the compliance section. Would you like a quick summary of the key points?
+                  </motion.div>
+
+                  <motion.div 
+                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 ml-8"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-teal-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-900">AI Processing</div>
+                        <div className="text-xs text-slate-500">LearnFlow AI Engine</div>
+                      </div>
                     </div>
+                  </motion.div>
+
+                  <motion.div 
+                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 ml-4"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                        <Video className="w-5 h-5 text-cyan-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-slate-900">Video Output</div>
+                        <div className="text-xs text-slate-500">Engaging Training Episodes</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Floating annotation */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  viewport={{ once: true }}
+                  className="absolute -bottom-4 right-4 bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg"
+                >
+                  ✨ Adaptive to your team
+                </motion.div>
+              </div>
+
+              {/* Mascot */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="absolute -top-6 -right-6"
+              >
+                <AIMascot expression="celebrate" className="w-14 h-14" />
+              </motion.div>
+            </div>
+
+            {/* Right: Content */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full text-emerald-700 text-sm font-medium mb-6">
+                <span>Better than generic AI</span>
+              </div>
+              
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">
+                Flow thinks
+              </h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500 mb-6">
+                like a trainer
+              </h2>
+              
+              <p className="text-lg text-slate-600 mb-8">
+                Stop waiting weeks for content creation. Get professional training videos instantly.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <div className="flex gap-4 flex-row-reverse">
-                    <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="bg-primary-600 rounded-2xl rounded-tr-none p-4 text-sm text-white">
-                      Yes, please. Specifically about the data privacy regulations.
-                    </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">AI-Powered Scripting</h4>
+                    <p className="text-sm text-slate-600">Our models understand training content and create engaging scripts automatically.</p>
                   </div>
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-                      <Brain className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="bg-slate-700/50 rounded-2xl rounded-tl-none p-4 text-sm text-slate-200">
-                      <p className="mb-2">Sure! Here are the 3 main pillars of GDPR you need to know:</p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Right to access data</li>
-                        <li>Right to be forgotten</li>
-                        <li>Data portability</li>
-                      </ul>
-                    </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Target className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Personalized Delivery</h4>
+                    <p className="text-sm text-slate-600">Voice cloning makes content feel familiar and increases engagement.</p>
                   </div>
                 </div>
               </div>
+
+              <Link to="/sign-up" className="inline-block mt-8">
+                <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 border-0">
+                  Get started for free <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100">
-            {stats.map((stat, index) => (
+      {/* How It Works Steps */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <AIMascot expression="point" className="w-12 h-12" />
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">How it Works</h2>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {howItWorks.map((step, index) => (
               <motion.div
-                key={stat.label}
+                key={step.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="text-center px-4"
+                className="text-center"
               >
-                <div className="text-4xl sm:text-5xl font-bold text-slate-900 mb-2 tracking-tight">{stat.value}</div>
-                <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">{stat.label}</div>
+                <div className="relative inline-block mb-6">
+                  <div className={`w-20 h-20 ${step.color} rounded-2xl flex items-center justify-center mx-auto shadow-lg`}>
+                    <step.icon className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full border-2 border-gray-100 flex items-center justify-center text-sm font-bold text-slate-900 shadow">
+                    {index + 1}
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+                <p className="text-slate-600">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -392,81 +737,98 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Loved by L&D Teams
-            </h2>
+          <div className="text-center mb-4">
+            <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Testimonials</div>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative"
-              >
-                <Quote className="w-10 h-10 text-primary-100 absolute top-6 left-6 -z-10" />
-                <p className="text-slate-600 mb-6 relative z-10">"{t.quote}"</p>
-                <div className="flex items-center gap-4">
-                  <img src={t.image} alt={t.author} className="w-12 h-12 rounded-full object-cover" />
-                  <div>
-                    <div className="font-bold text-slate-900">{t.author}</div>
-                    <div className="text-sm text-slate-500">{t.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Our customers</h2>
+            <div className="flex items-center justify-center gap-3">
+              <h2 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">
+                speak for us
+              </h2>
+              <AIMascot expression="celebrate" className="w-10 h-10" />
+            </div>
+          </div>
+
+          {/* Scrolling Testimonials */}
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none" />
+            
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="flex gap-4 w-max">
+                {testimonials.map((testimonial, index) => (
+                  <TestimonialCard
+                    key={index}
+                    quote={testimonial.quote}
+                    author={testimonial.author}
+                    role={testimonial.role}
+                    image={testimonial.image}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="bg-slate-900 rounded-[2.5rem] p-12 sm:p-20 text-center text-white relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-500 rounded-full blur-[100px] opacity-50"></div>
-            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent-500 rounded-full blur-[100px] opacity-50"></div>
-            
-            <div className="relative z-10">
-              <h2 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight">
-                Ready to Transform <br/>Your Training?
-              </h2>
-              <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Join hundreds of companies creating engaging training content with LearnFlow. Start your free trial today.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/sign-up">
-                  <Button
-                    size="lg"
-                    className="bg-white text-slate-900 hover:bg-gray-100 h-14 px-8 text-lg font-semibold"
-                  >
-                    Get Started for Free
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button
-                    variant="secondary"
-                    className="bg-transparent border-white/20 text-white hover:bg-white/10 h-14 px-8 text-lg"
-                  >
-                    Contact Sales
-                  </Button>
-                </Link>
-              </div>
-              <p className="text-sm text-slate-400 mt-8">No credit card required • Cancel anytime</p>
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+            Keep calm and LearnFlow
+          </h2>
+          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
+            Join hundreds of teams creating better training content with AI. Upload your first document and experience instant video creation that adapts to your needs.
+          </p>
+          <Link to="/sign-up">
+            <Button 
+              size="lg" 
+              className="h-14 px-8 text-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-xl shadow-emerald-500/25 border-0 rounded-full"
+            >
+              Get started for free <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">Ask us</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">anything!</h2>
+              <Sparkles className="w-6 h-6 text-emerald-400" />
             </div>
-          </motion.div>
+            <div className="inline-block px-4 py-1 bg-emerald-100 rounded-full text-emerald-700 text-sm font-medium">
+              FAQs
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+            {faqs.map((faq, index) => (
+              <FAQItem
+                key={index}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openFAQ === index}
+                onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
+              />
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link to="/contact">
+              <Button variant="secondary" className="rounded-full">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Contact us
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -474,52 +836,84 @@ export function LandingPage() {
       <footer className="bg-white border-t border-gray-100 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
+            {/* Brand */}
             <div className="col-span-2 lg:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+              <Link to="/" className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-xl text-slate-900">LearnFlow</span>
-              </div>
-              <p className="text-slate-500 max-w-xs">
-                The AI-powered training platform that turns documents into engaging video courses in minutes.
+              </Link>
+              <p className="text-slate-500 text-sm max-w-xs mb-6">
+                AI-powered training with instant video creation, personalized learning paths, and real-time analytics.
               </p>
+              
+              <div className="mb-4">
+                <p className="text-sm font-medium text-slate-700 mb-2">Follow us</p>
+                <div className="flex gap-3">
+                  <a href="#" className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-emerald-100 hover:text-emerald-600 transition-colors">
+                    <Twitter className="w-4 h-4" />
+                  </a>
+                  <a href="#" className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-emerald-100 hover:text-emerald-600 transition-colors">
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                  <a href="#" className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-emerald-100 hover:text-emerald-600 transition-colors">
+                    <Mail className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Feedback box */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <AIMascot expression="happy" className="w-8 h-8" />
+                  <span className="text-sm text-slate-600">Got ideas? We'd love to hear!</span>
+                </div>
+                <Link to="/contact" className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+                  Contact us →
+                </Link>
+              </div>
             </div>
             
+            {/* Core Links */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Product</h4>
-              <ul className="space-y-2 text-slate-600">
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Enterprise</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Case Studies</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 text-sm">Core</h4>
+              <ul className="space-y-3 text-sm">
+                <li><Link to="/" className="text-slate-600 hover:text-emerald-600 transition-colors">Home</Link></li>
+                <li><a href="#features" className="text-slate-600 hover:text-emerald-600 transition-colors">Features</a></li>
+                <li><Link to="/pricing" className="text-slate-600 hover:text-emerald-600 transition-colors">Pricing</Link></li>
+                <li><a href="#testimonials" className="text-slate-600 hover:text-emerald-600 transition-colors">Testimonials</a></li>
               </ul>
             </div>
             
+            {/* Help Links */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-slate-600">
-                <li><a href="#" className="hover:text-primary-600 transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Contact</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 text-sm">Help</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#faq" className="text-slate-600 hover:text-emerald-600 transition-colors">FAQs</a></li>
+                <li><Link to="/contact" className="text-slate-600 hover:text-emerald-600 transition-colors">Contact</Link></li>
+                <li><Link to="/terms" className="text-slate-600 hover:text-emerald-600 transition-colors">Terms of Service</Link></li>
+                <li><Link to="/privacy" className="text-slate-600 hover:text-emerald-600 transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
             
+            {/* Solutions Links */}
             <div>
-              <h4 className="font-bold text-slate-900 mb-4">Legal</h4>
-              <ul className="space-y-2 text-slate-600">
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-primary-600 transition-colors">Security</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 text-sm">Solutions</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#" className="text-slate-600 hover:text-emerald-600 transition-colors">Compliance Training</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-emerald-600 transition-colors">Employee Onboarding</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-emerald-600 transition-colors">Sales Enablement</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-emerald-600 transition-colors">Leadership Development</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-400 text-sm">© 2024 LearnFlow. All rights reserved.</p>
-            <div className="flex gap-6">
-              {/* Social icons would go here */}
+          <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-slate-400 text-sm">© 2024 LearnFlow AI. All Rights Reserved.</p>
+            <div className="flex items-center gap-2 text-slate-400">
+              <GraduationCap className="w-5 h-5" />
+              <span className="text-sm">Empowering teams to learn smarter</span>
             </div>
           </div>
         </div>

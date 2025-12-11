@@ -12,11 +12,11 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { Card, CardContent, Button, Input, Textarea, FileUpload } from '@/components/ui'
 import { DEFAULT_VOICES } from '@/lib/elevenlabs'
-import { api } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
+import { generateCourse, type GenerationProgress } from '@/lib/courseGenerator'
 
 type Step = 'details' | 'content' | 'photos' | 'voice' | 'review'
 
@@ -28,12 +28,20 @@ interface CourseFormData {
   selectedVoice: string
 }
 
+const PROCESSING_STEPS = [
+  { key: 'extract', label: 'Extracting PDF content', icon: FileText },
+  { key: 'photos', label: 'Processing photos', icon: Users },
+  { key: 'ai', label: 'AI generating scripts & quizzes', icon: Sparkles },
+  { key: 'audio', label: 'Creating voice narration', icon: Mic },
+  { key: 'save', label: 'Saving to database', icon: Upload },
+  { key: 'complete', label: 'Course ready!', icon: CheckCircle2 },
+]
+
 export function CreateCourse() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState<Step>('details')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [processingStatus, setProcessingStatus] = useState<string>('')
-  const [processingProgress, setProcessingProgress] = useState<number>(0)
+  const [processingStatus, setProcessingStatus] = useState<GenerationProgress | null>(null)
   const [formData, setFormData] = useState<CourseFormData>({
     title: '',
     description: '',
@@ -83,222 +91,48 @@ export function CreateCourse() {
 
   const handleCreateCourse = async () => {
     setIsProcessing(true)
-    setProcessingProgress(0)
+    setProcessingStatus({ step: 'extract', progress: 0, message: 'Starting...' })
     
     try {
-      // Step 1: Extract text from PDF
-      setProcessingStatus('Extracting text from PDF...')
-      setProcessingProgress(10)
-      
-      const pdfFile = formData.documents[0]
-      console.log('Processing PDF:', pdfFile.name)
-      
-      let extractedText = ''
-      try {
-        const extractedData = await api.extractTextFromPDF(pdfFile)
-        extractedText = extractedData.text
-        console.log('Extracted text:', extractedText.substring(0, 200) + '...')
-        toast.success(`Extracted ${extractedData.pages} pages from PDF`)
-      } catch (pdfError) {
-        console.error('PDF extraction error:', pdfError)
-        // Fallback: use filename as content hint
-        extractedText = `Training course about ${formData.title}. Content from ${pdfFile.name}.`
-        toast.error('PDF extraction failed, using fallback content')
-      }
-      
-      setProcessingProgress(25)
-      
-      // Step 2: Generate content using Claude AI
-      setProcessingStatus('Generating course content with AI...')
-      
-      let content: { segments?: Array<{ script: string }>; script?: string; summary?: string; quizzes?: Array<{ question: string; options: string[]; correctAnswer: number; timestamp: number }> } = {}
-      try {
-        content = await api.generateContent({
-          text: extractedText,
-          courseTitle: formData.title,
-          numberOfSegments: 5,
-          numberOfQuizzes: 3
-        })
-        console.log('Generated content:', content)
-        toast.success('AI generated course script and quiz questions!')
-      } catch (contentError) {
-        console.error('Content generation error:', contentError)
-        // Create mock content for demo
-        content = {
-          script: `Welcome to ${formData.title}. This is an AI-generated training course. ${extractedText.substring(0, 300)}`,
-          summary: formData.description || `Training course: ${formData.title}`,
-          quizzes: [
-            {
-              question: `What is the main topic of ${formData.title}?`,
-              options: ['Option A', 'Option B', 'Option C', 'Option D'],
-              correctAnswer: 0,
-              timestamp: 30
-            }
-          ]
-        }
-        toast.error('AI generation failed, using demo content')
-      }
-      
-      setProcessingProgress(50)
-      
-      // Step 3: Upload employee photo (if storage is configured)
-      setProcessingStatus('Processing employee photos...')
-      
-      let photoUrl = ''
-      if (formData.employeePhotos.length > 0) {
-        try {
-          const photo = formData.employeePhotos[0]
-          const photoPath = `photos/${Date.now()}-${photo.name}`
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('course-assets')
-            .upload(photoPath, photo)
-          
-          if (!uploadError && uploadData) {
-            const { data: urlData } = supabase.storage
-              .from('course-assets')
-              .getPublicUrl(photoPath)
-            photoUrl = urlData.publicUrl
-            console.log('Photo uploaded:', photoUrl)
-          } else {
-            console.warn('Photo upload skipped:', uploadError)
-            // Use a default avatar
-            photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.title)}&background=random`
-          }
-        } catch (photoError) {
-          console.warn('Photo processing error:', photoError)
-          photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.title)}&background=random`
-        }
-      }
-      
-      setProcessingProgress(60)
-      
-      // Step 4: Generate audio using ElevenLabs
-      setProcessingStatus('Generating AI voice narration...')
-      
-      let audioBlob: Blob | null = null
-      try {
-        const scriptText = content.segments?.[0]?.script || 
-                          content.script || 
-                          `Welcome to ${formData.title}. ${extractedText.substring(0, 500)}`
-        
-        audioBlob = await api.generateAudio({
-          text: scriptText.substring(0, 1000), // Limit text length
-          voiceId: formData.selectedVoice
-        })
-        
-        console.log('Audio generated, size:', audioBlob.size)
-        toast.success('Voice narration generated!')
-      } catch (audioError) {
-        console.error('Audio generation error:', audioError)
-        toast.error('Voice generation skipped (check ElevenLabs quota)')
-      }
-      
-      setProcessingProgress(75)
-      
-      // Step 5: Save to database (with error handling)
-      setProcessingStatus('Saving course to database...')
-      
-      const courseId = crypto.randomUUID()
-      
-      try {
-        // Insert course (organization_id can be null for individual courses)
-        const courseData: Record<string, unknown> = {
-          id: courseId,
+      const course = await generateCourse(
+        {
           title: formData.title,
-          description: formData.description || content.summary || '',
-          thumbnail_url: photoUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
-          status: 'published',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        
-        const { error: courseError } = await supabase
-          .from('courses')
-          .insert(courseData)
-        
-        if (courseError) {
-          console.warn('Course insert warning:', courseError)
-        }
-        
-        // Insert episode
-        const episodeId = crypto.randomUUID()
-        const { error: episodeError } = await supabase
-          .from('episodes')
-          .insert({
-            id: episodeId,
-            course_id: courseId,
-            title: 'Episode 1: Introduction',
-            description: content.script?.substring(0, 200) || 'Introduction to the course',
-            episode_order: 1,
-            duration: 180,
-            status: 'ready',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-        
-        if (episodeError) {
-          console.warn('Episode insert warning:', episodeError)
-        }
-        
-        // Insert quiz questions
-        if (content.quizzes && content.quizzes.length > 0) {
-          for (const quiz of content.quizzes) {
-            await supabase
-              .from('quiz_questions')
-              .insert({
-                id: crypto.randomUUID(),
-                episode_id: episodeId, // Link to episode, not course
-                question_text: quiz.question,
-                options: quiz.options,
-                correct_answer: quiz.correctAnswer,
-                trigger_time: quiz.timestamp || 50,
-                created_at: new Date().toISOString()
-              })
+          description: formData.description,
+          pdfFile: formData.documents[0],
+          employeePhotos: formData.employeePhotos,
+          voiceId: formData.selectedVoice,
+        },
+        (progress) => {
+          setProcessingStatus(progress)
+          
+          // Show toast for major milestones
+          if (progress.step === 'ai' && progress.progress === 35) {
+            toast.success('AI is analyzing your content...')
+          } else if (progress.step === 'audio' && progress.progress === 60) {
+            toast.success('Generating voice narration...')
           }
         }
-        
-        toast.success('Course saved to database!')
-      } catch (dbError) {
-        console.error('Database error:', dbError)
-        toast.error('Database save failed - course created locally')
-      }
+      )
       
-      setProcessingProgress(95)
+      console.log('Course created:', course)
+      toast.success(`🎉 Course "${course.title}" created with ${course.episodes.length} episodes!`)
       
-      // Step 6: Trigger n8n video generation (optional)
-      setProcessingStatus('Finalizing...')
-      
-      try {
-        await api.triggerVideoGeneration({
-          episodeId: courseId,
-          courseId: courseId,
-          pdfUrl: '',
-          employeePhotos: photoUrl ? [photoUrl] : [],
-          voiceId: formData.selectedVoice,
-          organizationId: 'org-1'
-        })
-        console.log('n8n workflow triggered')
-      } catch (n8nError) {
-        console.warn('n8n trigger skipped:', n8nError)
-      }
-      
-      setProcessingProgress(100)
-      setProcessingStatus('Course created successfully!')
-      
-      toast.success('🎉 Course created! Check the dashboard.')
-      
+      // Brief delay to show success state
       await new Promise(resolve => setTimeout(resolve, 1500))
       
       navigate('/admin')
     } catch (error) {
       console.error('Error creating course:', error)
-      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Failed to create course'}`)
     } finally {
       setIsProcessing(false)
-      setProcessingStatus('')
-      setProcessingProgress(0)
+      setProcessingStatus(null)
     }
+  }
+
+  const getCurrentProcessingStep = () => {
+    if (!processingStatus) return -1
+    return PROCESSING_STEPS.findIndex(s => s.key === processingStatus.step)
   }
 
   const renderStepContent = () => {
@@ -486,22 +320,53 @@ export function CreateCourse() {
               </p>
             </div>
             
-            {/* Processing Status */}
-            {isProcessing && (
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+            {/* Processing Status - Enhanced Visual */}
+            {isProcessing && processingStatus && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
                 <div className="flex items-center gap-3 mb-4">
                   <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                  <span className="font-medium text-blue-900">{processingStatus}</span>
+                  <span className="font-medium text-blue-900">{processingStatus.message}</span>
                 </div>
-                <div className="w-full bg-blue-200 rounded-full h-3 overflow-hidden">
+                
+                {/* Progress bar */}
+                <div className="w-full bg-blue-200 rounded-full h-3 overflow-hidden mb-4">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${processingProgress}%` }}
+                    animate={{ width: `${processingStatus.progress}%` }}
                     transition={{ duration: 0.5 }}
                   />
                 </div>
-                <p className="text-sm text-blue-700 mt-2">{processingProgress}% complete</p>
+                
+                {/* Step indicators */}
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
+                  {PROCESSING_STEPS.map((step, index) => {
+                    const currentIdx = getCurrentProcessingStep()
+                    const isCompleted = index < currentIdx
+                    const isCurrent = index === currentIdx
+                    const StepIcon = step.icon
+                    
+                    return (
+                      <div 
+                        key={step.key}
+                        className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+                          isCompleted ? 'bg-green-100' : isCurrent ? 'bg-blue-100' : 'bg-gray-50'
+                        }`}
+                      >
+                        <StepIcon className={`w-5 h-5 ${
+                          isCompleted ? 'text-green-600' : isCurrent ? 'text-blue-600 animate-pulse' : 'text-gray-400'
+                        }`} />
+                        <span className={`text-xs mt-1 text-center ${
+                          isCompleted ? 'text-green-700' : isCurrent ? 'text-blue-700' : 'text-gray-500'
+                        }`}>
+                          {step.label.split(' ')[0]}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                <p className="text-sm text-blue-700 mt-3 text-center">{processingStatus.progress}% complete</p>
               </div>
             )}
             
@@ -542,12 +407,11 @@ export function CreateCourse() {
                   <p className="font-medium">What happens next?</p>
                   <ol className="mt-1 list-decimal list-inside text-green-700 space-y-1">
                     <li>We'll extract text from your documents</li>
-                    <li>AI will generate conversational scripts</li>
+                    <li>Claude AI will generate conversational scripts</li>
                     <li>ElevenLabs will create natural narration</li>
-                    <li>Video will be assembled with your photos</li>
-                    <li>Quiz questions will be auto-generated</li>
+                    <li>Course and quizzes will be saved to database</li>
                   </ol>
-                  <p className="mt-2 font-medium">Estimated time: 2-5 minutes</p>
+                  <p className="mt-2 font-medium">Estimated time: 1-3 minutes</p>
                 </div>
               </div>
             </div>
@@ -615,7 +479,7 @@ export function CreateCourse() {
         <Button
           variant="secondary"
           onClick={handleBack}
-          disabled={currentStepIndex === 0}
+          disabled={currentStepIndex === 0 || isProcessing}
           leftIcon={<ChevronLeft className="w-4 h-4" />}
         >
           Back
@@ -627,7 +491,7 @@ export function CreateCourse() {
             loading={isProcessing}
             leftIcon={<Sparkles className="w-4 h-4" />}
           >
-            Create Course
+            {isProcessing ? 'Creating Course...' : 'Create Course'}
           </Button>
         ) : (
           <Button

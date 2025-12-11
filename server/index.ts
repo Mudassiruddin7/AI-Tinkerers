@@ -22,7 +22,6 @@ const SUPABASE_URL = process.env.SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || ''
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || ''
 
 // Initialize clients
 const app = express()
@@ -55,8 +54,7 @@ app.get('/api/health', (_req, res) => {
       stripe: !!stripe,
       supabase: !!supabase,
       anthropic: !!anthropic,
-      elevenlabs: !!ELEVENLABS_API_KEY,
-      n8n: !!N8N_WEBHOOK_URL
+      elevenlabs: !!ELEVENLABS_API_KEY
     }
   })
 })
@@ -255,21 +253,10 @@ app.post('/api/process/trigger-video-generation', async (req, res) => {
       }).eq('id', episodeId)
     }
 
-    // Trigger n8n webhook if configured
-    if (N8N_WEBHOOK_URL) {
-      await axios.post(N8N_WEBHOOK_URL, {
-        jobId,
-        episodeId,
-        courseId,
-        pdfUrl,
-        employeePhotos,
-        voiceId,
-        organizationId,
-        callbackUrl: `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/process/callback`
-      })
-    }
-
-    res.json({ jobId, status: 'queued' })
+    // Process directly without external workflow
+    // The processing will happen via the callback endpoint
+    
+    res.json({ jobId, status: 'queued', message: 'Video generation job created. Processing will begin shortly.' })
   } catch (error) {
     console.error('Video generation trigger error:', error)
     res.status(500).json({ error: 'Failed to trigger video generation' })

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in the Browser: Building LLM-Powered Browser Agents</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 16px; margin-bottom: 30px; }
+        .header h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
+        .stat { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 1.8em; font-weight: bold; }
+        .stat-label { font-size: 0.85em; opacity: 0.9; }
+        .episode { background: white; border-radius: 12px; margin-bottom: 25px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .episode-header { background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e9ecef; }
+        .episode-header h2 { color: #667eea; font-size: 1.4em; }
+        .episode-meta { display: flex; gap: 15px; margin-top: 8px; font-size: 0.9em; color: #666; }
+        .episode-content { padding: 25px; }
+        .scene { border-left: 4px solid #667eea; padding-left: 20px; margin-bottom: 25px; }
+        .scene-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .scene-badge { background: #667eea; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; }
+        .scene-duration { color: #999; font-size: 0.85em; }
+        .scene-text { color: #444; margin-bottom: 10px; }
+        .scene-description { color: #888; font-size: 0.9em; font-style: italic; }
+        .quiz-section { background: #fff3cd; padding: 20px; border-radius: 8px; margin-top: 25px; }
+        .quiz-section h3 { color: #856404; margin-bottom: 15px; }
+        .quiz-question { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .quiz-question h4 { margin-bottom: 10px; color: #333; }
+        .quiz-options { list-style: none; }
+        .quiz-options li { padding: 8px 12px; margin: 5px 0; background: #f8f9fa; border-radius: 4px; }
+        .quiz-options li.correct { background: #d4edda; border-left: 4px solid #28a745; }
+        .quiz-explanation { margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 4px; font-size: 0.9em; color: #0056b3; }
+        .takeaways { background: #d4edda; padding: 20px; border-radius: 8px; margin-top: 25px; }
+        .takeaways h3 { color: #155724; margin-bottom: 15px; }
+        .takeaways ul { list-style: none; }
+        .takeaways li { padding: 8px 0; padding-left: 25px; position: relative; }
+        .takeaways li::before { content: "✓"; position: absolute; left: 0; color: #28a745; font-weight: bold; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 0.9em; }
+        @media print { body { background: white; } .episode { box-shadow: none; border: 1px solid #ddd; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI in the Browser: Building LLM-Powered Browser Agents</h1>
+        <p>Learn how to build AI-powered browser automation agents that can navigate web pages, interact with elements, and perform complex tasks using Large Language Models.</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Episodes</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">26</div>
+                <div class="stat-label">Scenes</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Quiz Questions</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">28m</div>
+                <div class="stat-label">Duration</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode 1 -->
+    <div class="episode">
+        <div class="episode-header">
+            <h2>Episode 1: Introduction to LLM-Powered Browser Agents</h2>
+            <div class="episode-meta">
+                <span>⏱️ 6 minutes</span>
+                <span>📑 6 scenes</span>
+                <span>❓ 3 questions</span>
+            </div>
+        </div>
+        <div class="episode-content">
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 1</span>
+                    <span class="scene-duration">45s</span>
+                </div>
+                <p class="scene-text">Welcome to this comprehensive training on building LLM-powered browser agents. In today's digital workplace, automation isn't just a convenience—it's a necessity. Browser agents represent the next evolution in how we interact with web applications, combining the power of large language models with traditional browser automation techniques.</p>
+                <p class="scene-description">🎬 Opening slide with title animation showing AI and browser icons merging</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 2</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">So what exactly is a browser agent? A browser agent is an AI system that can understand natural language instructions and translate them into browser actions. Think of it as having a digital assistant that can navigate websites, fill out forms, extract data, and perform complex multi-step tasks—all based on your high-level descriptions.</p>
+                <p class="scene-description">🎬 Animated diagram showing the flow from user instruction to browser action</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 3</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">The key components of a browser agent include: the Large Language Model or LLM, which serves as the brain for understanding and decision-making; the browser automation framework, which provides the hands for interacting with web pages; and the observation layer, which acts as the eyes for perceiving page content and state.</p>
+                <p class="scene-description">🎬 Three-panel infographic showing LLM, Browser Framework, and Observation Layer</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 4</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">Why are browser agents becoming so important? Manual web tasks are time-consuming and error-prone. Traditional automation scripts are brittle and break when websites change. LLM-powered agents can adapt to new situations, handle edge cases gracefully, and work across different websites without specific programming for each one.</p>
+                <p class="scene-description">🎬 Side-by-side comparison: manual work vs traditional scripts vs AI agents</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 5</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Throughout this training, you'll learn how to architect browser agents, integrate them with popular LLM providers like OpenAI and Anthropic, implement robust error handling, and deploy them in production environments. By the end, you'll be able to build agents that can automate almost any web-based workflow.</p>
+                <p class="scene-description">🎬 Course roadmap showing upcoming modules and learning objectives</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 6</span>
+                    <span class="scene-duration">30s</span>
+                </div>
+                <p class="scene-text">Let's get started with understanding the core architecture. In the next episode, we'll dive deep into how browser agents observe and interact with web pages, setting the foundation for everything that follows.</p>
+                <p class="scene-description">🎬 Transition slide with 'Next: Browser Agent Architecture' preview</p>
+            </div>
+
+            <div class="quiz-section">
+                <h3>📝 Episode 1 Quiz</h3>
+                <div class="quiz-question">
+                    <h4>Q1: What are the three main components of a browser agent as described in this training?</h4>
+                    <ul class="quiz-options">
+                        <li>A. Database, API, and Frontend</li>
+                        <li class="correct">B. LLM, Browser Automation Framework, and Observation Layer ✓</li>
+                        <li>C. Server, Client, and Network</li>
+                        <li>D. HTML, CSS, and JavaScript</li>
+                    </ul>
+                    <div class="quiz-explanation">💡 A browser agent consists of an LLM (the brain for understanding), a browser automation framework (the hands for interaction), and an observation layer (the eyes for perceiving page content).</div>
+                </div>
+                <div class="quiz-question">
+                    <h4>Q2: What is a key advantage of LLM-powered browser agents over traditional automation scripts?</h4>
+                    <ul class="quiz-options">
+                        <li>A. They are always faster</li>
+                        <li class="correct">B. They can adapt to website changes and handle edge cases ✓</li>
+                        <li>C. They don't require any programming</li>
+                        <li>D. They work without internet connection</li>
+                    </ul>
+                    <div class="quiz-explanation">💡 LLM-powered agents can adapt to new situations and handle edge cases gracefully, unlike traditional scripts that break when websites change.</div>
+                </div>
+                <div class="quiz-question">
+                    <h4>Q3: What role does the Large Language Model play in a browser agent?</h4>
+                    <ul class="quiz-options">
+                        <li>A. It stores the webpage data</li>
+                        <li>B. It renders the visual interface</li>
+                        <li class="correct">C. It serves as the brain for understanding and decision-making ✓</li>
+                        <li>D. It provides the network connection</li>
+                    </ul>
+                    <div class="quiz-explanation">💡 The LLM serves as the brain of the browser agent, responsible for understanding natural language instructions and making decisions about which actions to take.</div>
+                </div>
+            </div>
+
+            <div class="takeaways">
+                <h3>📌 Key Takeaways</h3>
+                <ul>
+                    <li>Browser agents combine LLMs with browser automation for intelligent web task automation</li>
+                    <li>Three core components: LLM (brain), Browser Framework (hands), Observation Layer (eyes)</li>
+                    <li>LLM-powered agents are more adaptable than traditional scripts</li>
+                    <li>Browser agents can handle complex, multi-step workflows across different websites</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode 2 -->
+    <div class="episode">
+        <div class="episode-header">
+            <h2>Episode 2: Browser Agent Architecture</h2>
+            <div class="episode-meta">
+                <span>⏱️ 7 minutes</span>
+                <span>📑 7 scenes</span>
+                <span>❓ 3 questions</span>
+            </div>
+        </div>
+        <div class="episode-content">
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 1</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Now that you understand what browser agents are, let's explore how they're built. The architecture of a browser agent follows a perception-decision-action loop. The agent perceives the current state of the webpage, makes decisions about what to do next, and then executes actions to achieve its goals.</p>
+                <p class="scene-description">🎬 Circular diagram showing the perception-decision-action loop with arrows</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 2</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">The perception layer is responsible for understanding the current state of the browser. This involves extracting the DOM structure, identifying interactive elements like buttons and form fields, capturing visual information through screenshots, and understanding the semantic meaning of page content.</p>
+                <p class="scene-description">🎬 Screenshot of webpage with highlighted DOM elements and interactive components</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 3</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">Browser automation frameworks like Playwright, Puppeteer, or Selenium provide the foundation for interacting with web browsers. These tools allow us to navigate to URLs, click elements, type text, handle popups, and capture page state. Playwright has become the preferred choice for its speed, reliability, and modern API design.</p>
+                <p class="scene-description">🎬 Logos of Playwright, Puppeteer, and Selenium with feature comparison table</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 4</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">The decision-making component is where the LLM shines. When given a task description and the current page state, the LLM analyzes what action to take next. It can understand context, infer meaning from page content, and make intelligent choices about navigation paths—even on websites it has never seen before.</p>
+                <p class="scene-description">🎬 Flowchart showing LLM receiving page state and outputting action decisions</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 5</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">A critical design pattern is the action space definition. The agent needs a well-defined set of possible actions it can take: click an element, type text into a field, scroll the page, navigate to a URL, wait for an element, or extract information. By constraining the action space, we make the LLM's job easier and the agent more reliable.</p>
+                <p class="scene-description">🎬 Grid of action icons: click, type, scroll, navigate, wait, extract</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 6</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Error handling and recovery are essential for robust agents. Websites can be slow, elements might not be immediately visible, and unexpected popups can appear. A well-designed agent implements retry logic, timeout handling, and alternative action strategies when the primary approach fails.</p>
+                <p class="scene-description">🎬 Error handling flowchart with retry paths and fallback strategies</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 7</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Memory and context management allow agents to maintain state across multiple pages and sessions. This includes tracking which steps have been completed, storing extracted data, and remembering important information from earlier in the task flow. Without proper memory management, agents can get stuck in loops or repeat actions unnecessarily.</p>
+                <p class="scene-description">🎬 Visual representation of agent memory storing task progress and extracted data</p>
+            </div>
+
+            <div class="takeaways">
+                <h3>📌 Key Takeaways</h3>
+                <ul>
+                    <li>Browser agents follow a perception-decision-action loop</li>
+                    <li>The perception layer extracts DOM structure, identifies elements, and captures visual information</li>
+                    <li>Playwright is a preferred modern browser automation framework</li>
+                    <li>Defining a clear action space improves agent reliability</li>
+                    <li>Memory management prevents agents from getting stuck in loops</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode 3 -->
+    <div class="episode">
+        <div class="episode-header">
+            <h2>Episode 3: Integrating LLMs for Intelligent Decision Making</h2>
+            <div class="episode-meta">
+                <span>⏱️ 8 minutes</span>
+                <span>📑 8 scenes</span>
+                <span>❓ 3 questions</span>
+            </div>
+        </div>
+        <div class="episode-content">
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 1</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">The intelligence in browser agents comes from Large Language Models. In this episode, we'll cover how to effectively integrate LLMs from providers like OpenAI, Anthropic, and Google into your browser automation workflows. The key is crafting prompts that help the LLM understand both the task and the current page context.</p>
+                <p class="scene-description">🎬 Logos of OpenAI, Anthropic, and Google AI with connection lines to a browser agent</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 2</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">When sending page information to an LLM, you need to balance detail with token efficiency. A full DOM dump can easily exceed context limits. Instead, use intelligent extraction: identify the most relevant elements, their attributes, and their visible text. Tools like accessibility trees provide a compact representation of page structure.</p>
+                <p class="scene-description">🎬 Before/after comparison of raw DOM vs simplified accessibility tree representation</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 3</span>
+                    <span class="scene-duration">65s</span>
+                </div>
+                <p class="scene-text">Prompt engineering for browser agents requires careful consideration. Your system prompt should define the agent's capabilities, the format for describing page state, and the expected output format for actions. Use few-shot examples to demonstrate how to interpret page content and select appropriate actions.</p>
+                <p class="scene-description">🎬 Code editor showing a well-structured system prompt with annotations</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 4</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Structured output formats make parsing LLM responses reliable. Instead of free-form text, request JSON outputs with specific fields for action type, target element, and any required parameters. OpenAI's function calling and Anthropic's tool use features are especially useful here, providing guaranteed schema compliance.</p>
+                <p class="scene-description">🎬 JSON schema definition for agent action output with example response</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 5</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">Multi-step reasoning becomes important for complex tasks. Rather than asking the LLM for just the next action, consider chain-of-thought prompting where the model explains its reasoning. This improves accuracy and makes debugging easier. For very complex tasks, you might implement planning phases where the agent outlines steps before executing them.</p>
+                <p class="scene-description">🎬 Side-by-side: direct action vs chain-of-thought reasoning with visible steps</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 6</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Vision capabilities in models like GPT-4V and Claude open new possibilities. Instead of relying solely on DOM extraction, you can send screenshots to the LLM. This helps with dynamically rendered content, canvas elements, and situations where the visual layout provides important context that isn't captured in the HTML.</p>
+                <p class="scene-description">🎬 Screenshot being processed by vision model with annotation overlays</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 7</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Cost management is a practical concern. Each LLM call has associated costs, and browser agents can make many calls during a single task. Implement caching for similar page states, batch multiple decisions when possible, and use smaller models for routine decisions while reserving powerful models for complex reasoning steps.</p>
+                <p class="scene-description">🎬 Cost comparison chart showing different optimization strategies</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 8</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Error recovery with LLMs adds resilience. When an action fails, send the error information back to the LLM along with the updated page state. The model can often diagnose the issue and suggest alternative approaches. This self-healing capability is one of the major advantages over traditional rule-based automation.</p>
+                <p class="scene-description">🎬 Error recovery flow diagram showing failed action, LLM analysis, and retry path</p>
+            </div>
+
+            <div class="takeaways">
+                <h3>📌 Key Takeaways</h3>
+                <ul>
+                    <li>Balance detail with token efficiency when sending page information to LLMs</li>
+                    <li>Use structured output formats like JSON for reliable response parsing</li>
+                    <li>Chain-of-thought prompting improves accuracy for complex tasks</li>
+                    <li>Vision capabilities help with dynamic content and visual context</li>
+                    <li>Implement cost management strategies including caching and model selection</li>
+                    <li>LLMs can provide self-healing error recovery capabilities</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode 4 -->
+    <div class="episode">
+        <div class="episode-header">
+            <h2>Episode 4: Building and Deploying Production Agents</h2>
+            <div class="episode-meta">
+                <span>⏱️ 7 minutes</span>
+                <span>📑 7 scenes</span>
+                <span>❓ 3 questions</span>
+            </div>
+        </div>
+        <div class="episode-content">
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 1</span>
+                    <span class="scene-duration">45s</span>
+                </div>
+                <p class="scene-text">Moving browser agents from development to production requires careful consideration of reliability, security, and scalability. In this final episode, we'll cover the essential practices for deploying agents that can handle real-world workloads without constant human supervision.</p>
+                <p class="scene-description">🎬 Production deployment checklist with reliability, security, and scalability icons</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 2</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Authentication and session management are often the first challenges in production. Agents need to handle login flows, manage cookies and tokens, and deal with session timeouts. Consider implementing persistent browser contexts that maintain authentication state across runs, reducing the need to re-authenticate for every task.</p>
+                <p class="scene-description">🎬 Authentication flow diagram showing login, session persistence, and token refresh</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 3</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">Headless browser execution is standard for production deployments. Running browsers without a visible GUI reduces resource consumption and enables scaling across multiple instances. However, some websites detect headless browsers—implement stealth techniques like realistic user agents, viewport settings, and human-like interaction patterns.</p>
+                <p class="scene-description">🎬 Server rack visualization showing multiple headless browser instances running</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 4</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Monitoring and observability are critical for maintaining production agents. Implement comprehensive logging that captures each action, page state, and LLM decision. Use metrics to track success rates, execution times, and error frequencies. Set up alerts for anomalous behavior patterns that might indicate website changes or agent failures.</p>
+                <p class="scene-description">🎬 Dashboard showing agent metrics: success rate, execution time, error rates</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 5</span>
+                    <span class="scene-duration">55s</span>
+                </div>
+                <p class="scene-text">Security considerations multiply in production. Never hard-code credentials—use environment variables or secret management services. Be cautious about what data agents can access and extract. Implement access controls to ensure agents only perform authorized tasks. Regularly audit agent behavior to detect misuse or drift.</p>
+                <p class="scene-description">🎬 Security checklist with credential management, access controls, and audit logging</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 6</span>
+                    <span class="scene-duration">60s</span>
+                </div>
+                <p class="scene-text">Scaling strategies depend on your workload patterns. For high-volume tasks, implement job queues that distribute work across multiple agent instances. Use container orchestration platforms like Kubernetes to auto-scale based on demand. Consider browser-as-a-service providers like Browserless or BrowserStack for managed infrastructure.</p>
+                <p class="scene-description">🎬 Architecture diagram showing job queue, agent pool, and auto-scaling</p>
+            </div>
+            <div class="scene">
+                <div class="scene-header">
+                    <span class="scene-badge">Scene 7</span>
+                    <span class="scene-duration">50s</span>
+                </div>
+                <p class="scene-text">Continuous improvement should be built into your agent operations. Collect examples of failures and edge cases to improve prompts and handling logic. A/B test different prompting strategies to optimize success rates. As websites evolve, your agents will need regular updates—build processes to catch and adapt to these changes quickly.</p>
+                <p class="scene-description">🎬 Improvement cycle: collect failures, analyze, update prompts, deploy, measure</p>
+            </div>
+
+            <div class="takeaways">
+                <h3>📌 Key Takeaways</h3>
+                <ul>
+                    <li>Use persistent browser contexts to maintain authentication state</li>
+                    <li>Implement stealth techniques to avoid headless browser detection</li>
+                    <li>Comprehensive logging and monitoring are essential for production</li>
+                    <li>Never hard-code credentials—use proper secret management</li>
+                    <li>Scale with job queues and container orchestration</li>
+                    <li>Build continuous improvement processes into agent operations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated by AI Tutor Platform | December 11, 2025</p>
+        <p>Source: AI in the Browser: Building LLM-Powered Browser Agents.pdf</p>
+    </div>
+</body>
+</html>

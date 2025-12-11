@@ -81,18 +81,6 @@ class APIService {
     return response.data
   }
 
-  async triggerVideoGeneration(params: {
-    episodeId: string
-    courseId: string
-    pdfUrl: string
-    employeePhotos?: string[]
-    voiceId?: string
-    organizationId: string
-  }) {
-    const response = await this.client.post('/api/process/trigger-video-generation', params)
-    return response.data
-  }
-
   async getProcessingStatus(jobId: string) {
     const response = await this.client.get(`/api/process/status/${jobId}`)
     return response.data

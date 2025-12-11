@@ -18,6 +18,9 @@ import {
   MyProgress,
   ConsentPage,
   SettingsPage,
+  CoursePlayer,
+  LearningPathsPage,
+  EnrollmentsPage,
 } from './pages'
 
 // Check if Clerk is available
@@ -102,8 +105,11 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/create" element={<CreateCourse />} />
           <Route path="/admin/course/:courseId" element={<CourseBuilder />} />
+          <Route path="/admin/play/:courseId" element={<CoursePlayer />} />
           <Route path="/admin/employees" element={<ManageEmployees />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
+          <Route path="/admin/learning-paths" element={<LearningPathsPage />} />
+          <Route path="/admin/enrollments" element={<EnrollmentsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="/admin/billing" element={<BillingPage />} />
         </Route>
