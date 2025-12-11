@@ -1,0 +1,276 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-spotify-light-gray;
+  }
+  body {
+    @apply bg-spotify-black text-spotify-text-white antialiased selection:bg-spotify-green/30 selection:text-spotify-green;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  /* Spotify-style buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-3 bg-spotify-green text-black font-bold rounded-full 
+           hover:bg-spotify-green-light hover:scale-105 focus:outline-none focus:ring-2 focus:ring-spotify-green focus:ring-offset-2 focus:ring-offset-spotify-black
+           transition-all duration-200 ease-spotify disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+           shadow-lg hover:shadow-glow-green;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-2 bg-transparent text-spotify-text-white font-semibold rounded-full 
+           border border-spotify-text-gray/50 hover:border-spotify-text-white hover:scale-105
+           focus:outline-none focus:ring-2 focus:ring-spotify-text-white focus:ring-offset-2 focus:ring-offset-spotify-black
+           transition-all duration-200 ease-spotify;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2 bg-transparent text-spotify-text-gray font-medium rounded-lg 
+           hover:text-spotify-text-white hover:bg-spotify-hover-bg
+           transition-all duration-200 ease-spotify;
+  }
+  
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white font-medium rounded-full 
+           hover:bg-red-500 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 
+           focus:ring-offset-spotify-black transition-all duration-200;
+  }
+  
+  /* Spotify-style cards */
+  .card {
+    @apply bg-spotify-card-bg rounded-lg overflow-hidden transition-all duration-300 ease-spotify;
+  }
+  
+  .card-hover {
+    @apply card hover:bg-spotify-hover-bg cursor-pointer;
+  }
+  
+  .card-spotify {
+    @apply bg-spotify-card-bg rounded-lg p-4 hover:bg-spotify-hover-bg transition-all duration-300 ease-spotify cursor-pointer;
+  }
+  
+  /* Spotify-style inputs */
+  .input {
+    @apply w-full px-4 py-3 bg-spotify-medium-gray border-0 rounded-lg text-spotify-text-white placeholder-spotify-text-gray
+           focus:outline-none focus:ring-2 focus:ring-spotify-green transition-all duration-200;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-spotify-text-gray mb-2;
+  }
+  
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+  
+  .badge-success {
+    @apply badge bg-spotify-green/20 text-spotify-green;
+  }
+  
+  .badge-warning {
+    @apply badge bg-yellow-500/20 text-yellow-400;
+  }
+  
+  .badge-error {
+    @apply badge bg-red-500/20 text-red-400;
+  }
+  
+  .badge-info {
+    @apply badge bg-blue-500/20 text-blue-400;
+  }
+
+  /* Category pills like YouTube Music */
+  .pill {
+    @apply inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium
+           bg-spotify-medium-gray text-spotify-text-white
+           hover:bg-spotify-light-gray transition-all duration-200 cursor-pointer whitespace-nowrap;
+  }
+  
+  .pill-active {
+    @apply pill bg-spotify-text-white text-spotify-black hover:bg-white;
+  }
+
+  /* Glass panel */
+  .glass-panel {
+    @apply bg-spotify-black/70 backdrop-blur-xl border border-white/10 shadow-spotify-lg;
+  }
+
+  /* Scrollbar styles for horizontal scroll */
+  .scroll-container {
+    @apply flex gap-4 overflow-x-auto pb-4 scrollbar-thin;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .scroll-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: #404040;
+    border-radius: 4px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #505050;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 6px;
+  border: 3px solid #121212;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+/* Video player styles */
+.video-overlay {
+  @apply absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md;
+}
+
+.quiz-timer {
+  @apply relative w-16 h-16;
+}
+
+.quiz-timer-circle {
+  stroke-dasharray: 283;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+/* Animation for processing */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #282828 25%, #383838 50%, #282828 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Spotify-style play button overlay */
+.play-button-overlay {
+  @apply absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-all duration-300;
+}
+
+.play-button {
+  @apply w-12 h-12 rounded-full bg-spotify-green flex items-center justify-center
+         opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
+         transition-all duration-300 shadow-lg hover:scale-110 hover:bg-spotify-green-light;
+}
+
+/* Equalizer animation */
+.equalizer {
+  @apply flex items-end gap-0.5 h-4;
+}
+
+.equalizer-bar {
+  @apply w-1 bg-spotify-green rounded-full;
+  animation: equalizer 0.8s ease-in-out infinite;
+}
+
+.equalizer-bar:nth-child(1) { animation-delay: 0s; }
+.equalizer-bar:nth-child(2) { animation-delay: 0.2s; }
+.equalizer-bar:nth-child(3) { animation-delay: 0.4s; }
+.equalizer-bar:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes equalizer {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+/* Netflix-style episode cards */
+.episode-card {
+  @apply relative overflow-hidden rounded-lg transition-all duration-300;
+}
+
+.episode-card:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.episode-card:hover .episode-info {
+  @apply opacity-100;
+}
+
+.episode-info {
+  @apply absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 transition-opacity duration-300;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-spotify-green via-emerald-400 to-teal-400 bg-clip-text text-transparent;
+}
+
+/* Floating animation */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Background patterns */
+.bg-grid-pattern {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+}
+
+/* Spotify card image zoom */
+.card-image-zoom {
+  @apply transition-transform duration-500 ease-spotify group-hover:scale-105;
+}
+
+/* Glow effect */
+.glow-effect {
+  @apply relative;
+}
+
+.glow-effect::before {
+  content: '';
+  @apply absolute inset-0 bg-spotify-green/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10;
+}
+
+/* Section header link */
+.section-link {
+  @apply text-sm font-bold text-spotify-text-gray hover:text-spotify-text-white hover:underline transition-colors duration-200;
+}
