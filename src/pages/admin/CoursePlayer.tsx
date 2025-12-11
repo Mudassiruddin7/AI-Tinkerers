@@ -346,6 +346,7 @@ export function CoursePlayer() {
               </button>
             )}
 
+<<<<<<< HEAD
             {/* Video Element - for actual video files */}
             {currentEpisode?.video_url && currentEpisode.video_url.includes('.mp4') && (
               <video
@@ -359,6 +360,10 @@ export function CoursePlayer() {
             
             {/* Audio Element - for audio-only files */}
             {currentEpisode?.video_url && !currentEpisode.video_url.includes('.mp4') && (
+=======
+            {/* Audio Element */}
+            {currentEpisode?.video_url && (
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
               <audio
                 ref={audioRef}
                 src={currentEpisode.video_url}
@@ -437,6 +442,7 @@ export function CoursePlayer() {
           {/* No Audio Warning */}
           {!currentEpisode?.video_url && (
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-yellow-200 text-sm">
+<<<<<<< HEAD
               ⚠️ Audio narration not available for this episode. The audio may still be processing, or you need to create a new course with audio generation enabled.
             </div>
           )}
@@ -445,6 +451,9 @@ export function CoursePlayer() {
           {currentEpisode && (
             <div className="text-xs text-white/30 mt-2">
               Debug: video_url = {currentEpisode.video_url ? 'SET (' + currentEpisode.video_url.substring(0, 50) + '...)' : 'NULL'}
+=======
+              ⚠️ Audio narration not available for this episode. Configure ElevenLabs API to generate voice.
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
             </div>
           )}
         </div>

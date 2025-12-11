@@ -1,6 +1,11 @@
 /**
+<<<<<<< HEAD
  * LearnFlow AI Corporate Training Platform - Backend Server
  * Handles API endpoints for video processing, Stripe webhooks, and AI integrations
+=======
+ * Corporate Training Video Platform - Backend Server
+ * Handles API endpoints for video processing, Stripe webhooks, and integrations
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
  */
 
 import 'dotenv/config'
@@ -13,19 +18,28 @@ import multer from 'multer'
 import pdfParse from 'pdf-parse'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
+<<<<<<< HEAD
 import { fal } from '@fal-ai/client'
 
 // Environment variables
 const PORT = process.env.PORT || 3002
+=======
+
+// Environment variables
+const PORT = process.env.PORT || 3001
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || ''
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ''
 const SUPABASE_URL = process.env.SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || ''
+<<<<<<< HEAD
 const FAL_KEY = process.env.FAL_KEY || ''
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_AI || ''
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || ''
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 
 // Initialize clients
 const app = express()
@@ -35,11 +49,14 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_KEY
   : null
 const anthropic = ANTHROPIC_API_KEY ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null
 
+<<<<<<< HEAD
 // Configure fal.ai client
 if (FAL_KEY) {
   fal.config({ credentials: FAL_KEY })
 }
 
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 // Multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -59,15 +76,22 @@ app.use(express.json())
 app.get('/api/health', (_req, res) => {
   res.json({ 
     status: 'ok',
+<<<<<<< HEAD
     platform: 'LearnFlow AI Training Platform',
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     services: {
       stripe: !!stripe,
       supabase: !!supabase,
       anthropic: !!anthropic,
+<<<<<<< HEAD
       elevenlabs: !!ELEVENLABS_API_KEY,
       fal: !!FAL_KEY,
       gemini: !!GEMINI_API_KEY,
       replicate: !!REPLICATE_API_TOKEN
+=======
+      elevenlabs: !!ELEVENLABS_API_KEY
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     }
   })
 })
@@ -98,14 +122,37 @@ app.post('/api/process/extract-text', upload.single('pdf'), async (req, res) => 
   }
 })
 
+<<<<<<< HEAD
 // Generate script segments and quiz questions using Claude or Gemini for LearnFlow AI
+=======
+// Generate script segments and quiz questions using Claude
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 app.post('/api/process/generate-content', async (req, res) => {
   try {
     const { text, courseTitle } = req.body
     
+<<<<<<< HEAD
     console.log('🧠 LearnFlow AI: Generate content request:', { courseTitle, textLength: text?.length })
 
     const contentPrompt = `You are LearnFlow AI, creating engaging training content for a corporate training video. Based on the following training material, please:
+=======
+    console.log('Generate content request:', { courseTitle, textLength: text?.length })
+
+    if (!anthropic) {
+      console.log('Anthropic not configured, returning mock data')
+      // Return mock data for development
+      return res.json(generateMockContent(text))
+    }
+
+    console.log('Calling Claude API...')
+    const message = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: `You are creating engaging training content for a corporate training video. Based on the following training material, please:
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 
 1. Break the content into 5-8 script segments (200-300 words each) that can be narrated naturally
 2. Rewrite each segment as conversational, engaging narration - NOT verbatim from the source
@@ -138,6 +185,7 @@ Respond in this exact JSON format:
 }
 
 Make questions practical and scenario-based when possible, not just recall of facts.`
+<<<<<<< HEAD
 
     // Try Gemini first (free tier available)
     if (GEMINI_API_KEY) {
@@ -203,26 +251,63 @@ Make questions practical and scenario-based when possible, not just recall of fa
     res.json(generateMockContent(text))
   } catch (error) {
     console.error('Content generation error:', error)
+=======
+        }
+      ]
+    })
+
+    // Extract JSON from response
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    console.log('Claude response received, length:', responseText.length)
+    
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+    
+    if (!jsonMatch) {
+      console.error('Failed to parse Claude response:', responseText.substring(0, 500))
+      throw new Error('Failed to parse Claude response')
+    }
+
+    const content = JSON.parse(jsonMatch[0])
+    console.log('Content parsed successfully:', { segmentCount: content.segments?.length, quizCount: content.quizQuestions?.length })
+    res.json(content)
+  } catch (error) {
+    console.error('Content generation error:', error)
+    // Return mock data on error
+    console.log('Returning mock content due to error')
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     res.json(generateMockContent(req.body.text || 'Training content'))
   }
 })
 
+<<<<<<< HEAD
 // Generate audio using ElevenLabs for LearnFlow AI Tutor
+=======
+// Generate audio using ElevenLabs
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 app.post('/api/process/generate-audio', async (req, res) => {
   try {
     const { text, voiceId = '21m00Tcm4TlvDq8ikWAM' } = req.body
     
+<<<<<<< HEAD
     console.log('🎙️ LearnFlow Audio Generation Request:', { textLength: text?.length, voiceId })
 
     if (!ELEVENLABS_API_KEY) {
       console.error('❌ ElevenLabs API key not configured')
       return res.status(400).json({ error: 'ElevenLabs API key not configured. Please add ELEVENLABS_API_KEY to your .env file.' })
+=======
+    console.log('Audio generation request:', { textLength: text?.length, voiceId })
+
+    if (!ELEVENLABS_API_KEY) {
+      console.error('ElevenLabs API key not configured')
+      return res.status(400).json({ error: 'ElevenLabs API key not configured' })
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     }
     
     if (!text || text.trim().length === 0) {
       return res.status(400).json({ error: 'Text is required for audio generation' })
     }
 
+<<<<<<< HEAD
     // Clean the text for better audio generation
     const cleanedText = text
       .replace(/\s+/g, ' ')  // Normalize whitespace
@@ -241,6 +326,17 @@ app.post('/api/process/generate-audio', async (req, res) => {
           similarity_boost: 0.75,
           style: 0.0,
           use_speaker_boost: true
+=======
+    console.log('Calling ElevenLabs API...')
+    const response = await axios.post(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        text: text.substring(0, 5000), // Limit text length
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
         }
       },
       {
@@ -250,6 +346,7 @@ app.post('/api/process/generate-audio', async (req, res) => {
           'Accept': 'audio/mpeg'
         },
         responseType: 'arraybuffer',
+<<<<<<< HEAD
         timeout: 60000  // Increased timeout to 60 seconds for longer texts
       }
     )
@@ -289,11 +386,33 @@ app.post('/api/process/generate-audio', async (req, res) => {
     res.status(500).json({ 
       error: errorMsg, 
       details: errorDetails,
+=======
+        timeout: 30000
+      }
+    )
+
+    console.log('Audio generated successfully, size:', response.data.byteLength)
+    res.set('Content-Type', 'audio/mpeg')
+    res.send(Buffer.from(response.data))
+  } catch (error: any) {
+    console.error('Audio generation error:', error.response?.status, error.response?.data ? Buffer.from(error.response.data).toString() : error.message)
+    
+    // Return a simple "audio unavailable" placeholder instead of error
+    // This allows the course creation to continue even without audio
+    const errorMsg = error.response?.status === 401 
+      ? 'ElevenLabs API key invalid or quota exceeded' 
+      : 'Audio generation failed'
+    
+    res.status(500).json({ 
+      error: errorMsg, 
+      details: error.message,
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       skipAudio: true // Signal to frontend that audio can be skipped
     })
   }
 })
 
+<<<<<<< HEAD
 // Generate video using Google Gemini Veo API
 app.post('/api/process/generate-video', async (req, res) => {
   try {
@@ -773,6 +892,8 @@ app.post('/api/process/generate-image', async (req, res) => {
   }
 })
 
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 // Trigger n8n workflow for video processing
 app.post('/api/process/trigger-video-generation', async (req, res) => {
   try {
@@ -1288,6 +1409,7 @@ app.get('/api/progress/:userId/:courseId', async (req, res) => {
  * ============================================
  */
 
+<<<<<<< HEAD
 /**
  * Poll Replicate prediction until completion
  */
@@ -1331,6 +1453,8 @@ async function pollReplicatePrediction(predictionId: string, apiToken: string): 
   return null
 }
 
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 function generateMockContent(text: string) {
   const segments = []
   const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 30)

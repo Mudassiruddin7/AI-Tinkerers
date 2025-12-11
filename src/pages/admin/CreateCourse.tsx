@@ -13,7 +13,10 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
+<<<<<<< HEAD
   Video,
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 } from 'lucide-react'
 import { Card, CardContent, Button, Input, Textarea, FileUpload } from '@/components/ui'
 import { DEFAULT_VOICES } from '@/lib/elevenlabs'
@@ -34,7 +37,10 @@ const PROCESSING_STEPS = [
   { key: 'photos', label: 'Processing photos', icon: Users },
   { key: 'ai', label: 'AI generating scripts & quizzes', icon: Sparkles },
   { key: 'audio', label: 'Creating voice narration', icon: Mic },
+<<<<<<< HEAD
   { key: 'video', label: 'Generating AI videos', icon: Video },
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   { key: 'save', label: 'Saving to database', icon: Upload },
   { key: 'complete', label: 'Course ready!', icon: CheckCircle2 },
 ]
@@ -116,6 +122,7 @@ export function CreateCourse() {
         }
       )
       
+<<<<<<< HEAD
       console.log('✅ Course created successfully:', course)
       
       // Show success message with instructions
@@ -136,6 +143,18 @@ export function CreateCourse() {
       console.error('❌ Error creating course:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create course'
       toast.error(`Error: ${errorMessage}`, { duration: 6000 })
+=======
+      console.log('Course created:', course)
+      toast.success(`🎉 Course "${course.title}" created with ${course.episodes.length} episodes!`)
+      
+      // Brief delay to show success state
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      navigate('/admin')
+    } catch (error) {
+      console.error('Error creating course:', error)
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Failed to create course'}`)
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     } finally {
       setIsProcessing(false)
       setProcessingStatus(null)
@@ -416,6 +435,7 @@ export function CreateCourse() {
               <div className="bg-green-50 rounded-lg p-4 flex gap-3">
                 <Sparkles className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-green-800">
+<<<<<<< HEAD
                 <p className="font-medium">What LearnFlow AI does next:</p>
                 <ol className="mt-1 list-decimal list-inside text-green-700 space-y-1">
                   <li>Extract text from your documents</li>
@@ -425,6 +445,16 @@ export function CreateCourse() {
                   <li>Course and quizzes saved to your dashboard</li>
                 </ol>
                 <p className="mt-2 font-medium">Estimated time: 2-5 minutes</p>
+=======
+                  <p className="font-medium">What happens next?</p>
+                  <ol className="mt-1 list-decimal list-inside text-green-700 space-y-1">
+                    <li>We'll extract text from your documents</li>
+                    <li>Claude AI will generate conversational scripts</li>
+                    <li>ElevenLabs will create natural narration</li>
+                    <li>Course and quizzes will be saved to database</li>
+                  </ol>
+                  <p className="mt-2 font-medium">Estimated time: 1-3 minutes</p>
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
                 </div>
               </div>
             </div>

@@ -3,7 +3,11 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'onDragStart' | 'onDragEnd' | 'onDrag'> {
+<<<<<<< HEAD
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'spotify'
+=======
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   isLoading?: boolean
@@ -26,6 +30,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const isButtonLoading = loading || isLoading
+<<<<<<< HEAD
   const baseStyles = 'inline-flex items-center justify-center font-bold transition-all duration-200 ease-spotify focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-spotify-black disabled:opacity-50 disabled:cursor-not-allowed'
   
   const variants = {
@@ -41,12 +46,33 @@ export function Button({
     sm: 'px-4 py-1.5 text-sm',
     md: 'px-6 py-2.5 text-sm',
     lg: 'px-8 py-3 text-base',
+=======
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+  
+  const variants = {
+    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
+    secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500',
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500',
+    outline: 'bg-transparent text-gray-300 border border-gray-600 hover:bg-gray-800 hover:text-white focus:ring-gray-500',
+  }
+  
+  const sizes = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base',
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   }
 
   return (
     <motion.button
+<<<<<<< HEAD
       whileHover={{ scale: disabled ? 1 : 1.05 }}
       whileTap={{ scale: disabled ? 1 : 0.95 }}
+=======
+      whileHover={{ scale: disabled ? 1 : 1.02 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       className={cn(baseStyles, variants[variant], sizes[size], fullWidth && 'w-full', className)}
       disabled={disabled || isButtonLoading}
       {...props}

@@ -14,8 +14,11 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
     "@clerk/clerk-react": "^5.2.0",
+<<<<<<< HEAD
     "@fal-ai/client": "^1.7.2",
     "@fal-ai/serverless-client": "^0.15.0",
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     "@stripe/react-stripe-js": "^2.7.1",
     "@stripe/stripe-js": "^4.1.0",
     "@supabase/supabase-js": "^2.45.0",
@@ -64,6 +67,10 @@
     "tailwindcss": "^3.4.4",
     "tsx": "^4.21.0",
     "typescript": "^5.4.5",
+<<<<<<< HEAD
     "vite": "^7.2.7"
+=======
+    "vite": "^5.2.13"
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   }
 }

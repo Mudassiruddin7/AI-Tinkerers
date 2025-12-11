@@ -16,6 +16,7 @@ import {
   FileCheck,
   ChevronRight,
   User,
+<<<<<<< HEAD
   Home,
   Search,
   Library,
@@ -26,6 +27,11 @@ import {
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store'
 import { useState } from 'react'
+=======
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store'
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 
 // Check if Clerk is available
 const isClerkEnabled = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -35,30 +41,53 @@ interface DashboardLayoutProps {
 }
 
 const adminNavItems = [
+<<<<<<< HEAD
   { path: '/admin', icon: Home, label: 'Home' },
+=======
+  { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   { path: '/admin/create', icon: Plus, label: 'Create Course' },
   { path: '/admin/employees', icon: Users, label: 'Employees' },
   { path: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { path: '/admin/billing', icon: CreditCard, label: 'Billing' },
+<<<<<<< HEAD
 ]
 
 const employeeNavItems = [
   { path: '/employee', icon: Home, label: 'Home' },
   { path: '/employee/progress', icon: Trophy, label: 'My Progress' },
   { path: '/employee/consent', icon: FileCheck, label: 'Consent Settings' },
+=======
+  { path: '/admin/settings', icon: Settings, label: 'Settings' },
+]
+
+const employeeNavItems = [
+  { path: '/employee', icon: GraduationCap, label: 'My Learning' },
+  { path: '/employee/progress', icon: Trophy, label: 'My Progress' },
+  { path: '/employee/consent', icon: FileCheck, label: 'Consent Settings' },
+  { path: '/employee/settings', icon: Settings, label: 'Settings' },
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
 ]
 
 // Dev mode user button placeholder
 const DevUserButton = () => (
+<<<<<<< HEAD
   <div className="w-8 h-8 bg-spotify-medium-gray rounded-full flex items-center justify-center hover:bg-spotify-light-gray transition-colors">
     <User className="w-4 h-4 text-spotify-text-gray" />
+=======
+  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+    <User className="w-4 h-4 text-gray-600" />
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   </div>
 )
 
 export function DashboardLayout({ userRole }: DashboardLayoutProps) {
   const location = useLocation()
   const { sidebarOpen, toggleSidebar } = useAppStore()
+<<<<<<< HEAD
   const [searchQuery, setSearchQuery] = useState('')
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   
   // Only use Clerk hooks when enabled
   const clerkUser = isClerkEnabled ? useUser() : { user: null }
@@ -71,6 +100,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
   const devUserEmail = userRole === 'admin' ? 'admin@company.com' : 'employee@company.com'
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-spotify-black">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-spotify-dark-gray/95 backdrop-blur-lg border-b border-white/5 z-50 flex items-center justify-between px-4">
@@ -89,6 +119,22 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
             <Sparkles className="w-5 h-5 text-black" />
           </motion.div>
           <span className="font-bold text-spotify-text-white">LearnFlow</span>
+=======
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-4">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-lg hover:bg-gray-100"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-gray-900">LearnFlow</span>
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
         </div>
         {isClerkEnabled ? <UserButton afterSignOutUrl="/" /> : <DevUserButton />}
       </div>
@@ -101,12 +147,20 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={toggleSidebar}
+<<<<<<< HEAD
             className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+=======
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
           />
         )}
       </AnimatePresence>
 
+<<<<<<< HEAD
       {/* Sidebar - Spotify Style */}
+=======
+      {/* Sidebar */}
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       <AnimatePresence>
         {(sidebarOpen || window.innerWidth >= 1024) && (
           <motion.aside
@@ -115,6 +169,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
             exit={{ x: -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
+<<<<<<< HEAD
               'fixed top-0 left-0 h-full w-[280px] bg-spotify-black z-50 flex flex-col',
               'lg:translate-x-0 lg:static lg:z-0'
             )}
@@ -181,10 +236,55 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
                       )}
                     </Link>
                   </motion.div>
+=======
+              'fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 z-50',
+              'lg:translate-x-0 lg:static lg:z-0'
+            )}
+          >
+            {/* Logo */}
+            <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
+              <Link to={userRole === 'admin' ? '/admin' : '/employee'} className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-bold text-gray-900">LearnFlow</span>
+              </Link>
+              <button
+                onClick={toggleSidebar}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="p-4 space-y-1">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => window.innerWidth < 1024 && toggleSidebar()}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                      isActive
+                        ? 'bg-primary-50 text-primary-700 font-medium'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    )}
+                  >
+                    <item.icon className={cn('w-5 h-5', isActive && 'text-primary-600')} />
+                    <span>{item.label}</span>
+                    {isActive && (
+                      <ChevronRight className="w-4 h-4 ml-auto text-primary-600" />
+                    )}
+                  </Link>
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
                 )
               })}
             </nav>
 
+<<<<<<< HEAD
             {/* Library Section */}
             <div className="mt-6 px-3">
               <div className="bg-spotify-dark-gray rounded-lg p-4">
@@ -241,6 +341,18 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
                   </p>
                   <p className="text-xs text-spotify-text-gray truncate">
                     {userRole === 'admin' ? 'Administrator' : 'Employee'}
+=======
+            {/* User Section */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                {isClerkEnabled ? <UserButton afterSignOutUrl="/" /> : <DevUserButton />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {isClerkEnabled ? `${user?.firstName || ''} ${user?.lastName || ''}` : devUserName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {isClerkEnabled ? user?.emailAddresses[0]?.emailAddress : devUserEmail}
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
                   </p>
                 </div>
               </div>
@@ -253,6 +365,7 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
       <main
         className={cn(
           'min-h-screen transition-all duration-300',
+<<<<<<< HEAD
           'pt-16 lg:pt-0 lg:ml-[280px]'
         )}
       >
@@ -290,6 +403,12 @@ export function DashboardLayout({ userRole }: DashboardLayoutProps) {
         </div>
 
         <div className="p-6 lg:p-8">
+=======
+          'pt-16 lg:pt-0 lg:ml-64'
+        )}
+      >
+        <div className="p-4 lg:p-8">
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
           <Outlet />
         </div>
       </main>

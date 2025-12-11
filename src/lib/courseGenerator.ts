@@ -1,7 +1,13 @@
 /**
+<<<<<<< HEAD
  * LearnFlow AI Course Generation Service
  * Handles PDF processing, AI script generation, and audio/video synthesis
  * Uses Claude AI + ElevenLabs + Replicate for professional training content
+=======
+ * Direct Course Generation Service
+ * Handles PDF processing, AI script generation, and audio synthesis
+ * WITHOUT requiring n8n - uses Claude AI + ElevenLabs directly
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
  */
 
 import { supabase } from './supabase'
@@ -24,7 +30,10 @@ export interface GeneratedEpisode {
   description: string
   script: string
   audioUrl?: string
+<<<<<<< HEAD
   videoUrl?: string
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   duration: number
   scenes: GeneratedScene[]
 }
@@ -111,7 +120,11 @@ export async function generateCourse(
       courseId,
       (segmentProgress) => {
         const baseProgress = 60
+<<<<<<< HEAD
         const audioRange = 15 // 60-75%
+=======
+        const audioRange = 30 // 60-90%
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
         const currentProgress = baseProgress + (segmentProgress * audioRange / 100)
         onProgress?.({ 
           step: 'audio', 
@@ -121,6 +134,7 @@ export async function generateCourse(
       }
     )
     
+<<<<<<< HEAD
     // Step 5: Generate videos with lip-sync using fal.ai
     onProgress?.({ step: 'video', progress: 75, message: 'Generating AI videos with lip-sync...' })
     
@@ -146,12 +160,24 @@ export async function generateCourse(
     const totalDuration = episodesWithVideo.reduce((sum, ep) => sum + ep.duration, 0)
     
     // Step 7: Save to database
+=======
+    onProgress?.({ step: 'save', progress: 92, message: 'Saving course to database...' })
+    
+    // Step 5: Calculate total duration
+    const totalDuration = episodes.reduce((sum, ep) => sum + ep.duration, 0)
+    
+    // Step 6: Save to database
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     const savedCourse = await saveCourseToDatabase({
       id: courseId,
       title: input.title,
       description: input.description || aiContent.summary,
       thumbnailUrl: photoUrls[0] || getDefaultThumbnail(input.title),
+<<<<<<< HEAD
       episodes: episodesWithVideo,
+=======
+      episodes,
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       quizQuestions: aiContent.quizQuestions,
       totalDuration,
       organizationId: input.organizationId
@@ -306,6 +332,7 @@ async function generateEpisodeAudio(
     let duration = estimateDuration(segment.script)
     
     try {
+<<<<<<< HEAD
       console.log(`🎙️ LearnFlow: Generating audio for episode ${i + 1}/${segments.length}...`)
       console.log(`📝 Script length: ${segment.script.length} characters`)
       
@@ -339,10 +366,26 @@ async function generateEpisodeAudio(
           audioUrl = await blobToDataUrl(audioBlob)
         } else {
           console.log(`✅ LearnFlow audio uploaded to storage:`, uploadData?.path)
+=======
+      const audioBlob = await generateAudio(segment.script, voiceId)
+      
+      if (audioBlob && audioBlob.size > 0) {
+        // Upload audio to Supabase
+        const audioFileName = `courses/${courseId}/audio/episode-${i + 1}.mp3`
+        
+        const { error: uploadError } = await supabase.storage
+          .from('audio')
+          .upload(audioFileName, audioBlob, {
+            contentType: 'audio/mpeg'
+          })
+        
+        if (!uploadError) {
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
           const { data: urlData } = supabase.storage
             .from('audio')
             .getPublicUrl(audioFileName)
           audioUrl = urlData.publicUrl
+<<<<<<< HEAD
           console.log(`🔗 Audio URL:`, audioUrl)
         }
         
@@ -355,6 +398,16 @@ async function generateEpisodeAudio(
     } catch (audioError) {
       console.warn(`❌ LearnFlow audio generation failed for segment ${i + 1}:`, audioError)
       // Continue without audio - video will still be generated
+=======
+          
+          // More accurate duration estimate based on audio size
+          // ~16kbps for speech = ~2KB per second
+          duration = Math.round(audioBlob.size / 2000)
+        }
+      }
+    } catch (audioError) {
+      console.warn(`Audio generation failed for segment ${i + 1}:`, audioError)
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     }
     
     // Create scenes from the segment
@@ -370,6 +423,7 @@ async function generateEpisodeAudio(
       scenes
     })
     
+<<<<<<< HEAD
     console.log(`📝 LearnFlow Episode ${i + 1} created:`, { 
       title: segment.title, 
       hasAudio: !!audioUrl,
@@ -377,6 +431,8 @@ async function generateEpisodeAudio(
       duration 
     })
     
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     currentTime += duration
   }
   
@@ -385,6 +441,7 @@ async function generateEpisodeAudio(
 }
 
 /**
+<<<<<<< HEAD
  * Convert a Blob to a base64 data URL
  */
 async function blobToDataUrl(blob: Blob): Promise<string> {
@@ -532,10 +589,13 @@ async function generateEpisodeVideos(
 }
 
 /**
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
  * Generate audio using ElevenLabs via backend
  */
 async function generateAudio(text: string, voiceId: string): Promise<Blob | null> {
   try {
+<<<<<<< HEAD
     // Clean and prepare text for better audio generation
     const cleanedText = text
       .replace(/\s+/g, ' ')
@@ -549,17 +609,24 @@ async function generateAudio(text: string, voiceId: string): Promise<Blob | null
     
     console.log(`📤 LearnFlow: Sending audio request, text length: ${cleanedText.length}`)
     
+=======
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     const response = await fetch(`${API_BASE_URL}/api/process/generate-audio`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+<<<<<<< HEAD
         text: cleanedText,
+=======
+        text: text.substring(0, 5000), // ElevenLabs limit
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
         voiceId
       })
     })
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
+<<<<<<< HEAD
       console.error('❌ LearnFlow audio API error:', response.status, errorData)
       if (errorData.skipAudio) {
         console.log('⚠️ LearnFlow: Audio generation skipped, continuing without audio')
@@ -579,6 +646,17 @@ async function generateAudio(text: string, voiceId: string): Promise<Blob | null
     return blob
   } catch (error) {
     console.warn('❌ LearnFlow audio generation error:', error)
+=======
+      if (errorData.skipAudio) {
+        return null // Audio generation skipped, continue without audio
+      }
+      throw new Error('Audio generation failed')
+    }
+    
+    return await response.blob()
+  } catch (error) {
+    console.warn('Audio generation error:', error)
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     return null
   }
 }
@@ -640,6 +718,7 @@ async function saveCourseToDatabase(course: {
   organizationId?: string
 }): Promise<GeneratedCourse> {
   try {
+<<<<<<< HEAD
     console.log('Saving course to database:', {
       id: course.id,
       title: course.title,
@@ -648,6 +727,10 @@ async function saveCourseToDatabase(course: {
     
     // Insert course
     const { data: courseData, error: courseError } = await supabase
+=======
+    // Insert course
+    const { error: courseError } = await supabase
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       .from('courses')
       .insert({
         id: course.id,
@@ -659,6 +742,7 @@ async function saveCourseToDatabase(course: {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
+<<<<<<< HEAD
       .select()
     
     if (courseError) {
@@ -668,10 +752,18 @@ async function saveCourseToDatabase(course: {
     
     console.log('Course saved successfully:', courseData)
     
+=======
+    
+    if (courseError) {
+      console.warn('Course insert warning:', courseError)
+    }
+    
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     // Insert episodes
     for (let i = 0; i < course.episodes.length; i++) {
       const episode = course.episodes[i]
       
+<<<<<<< HEAD
       // Prefer video URL over audio URL
       const mediaUrl = episode.videoUrl || episode.audioUrl || null
       
@@ -683,6 +775,9 @@ async function saveCourseToDatabase(course: {
       })
       
       const { data: episodeData, error: episodeError } = await supabase
+=======
+      const { error: episodeError } = await supabase
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
         .from('episodes')
         .insert({
           id: episode.id,
@@ -691,6 +786,7 @@ async function saveCourseToDatabase(course: {
           description: episode.description,
           episode_order: i + 1,
           duration: episode.duration,
+<<<<<<< HEAD
           video_url: mediaUrl,
           status: mediaUrl ? 'ready' : 'processing',
           created_at: new Date().toISOString(),
@@ -705,13 +801,29 @@ async function saveCourseToDatabase(course: {
       
       console.log(`✅ Episode ${i + 1} saved with media:`, episodeData?.[0]?.video_url ? 'YES' : 'NO')
       
+=======
+          video_url: episode.audioUrl, // Use audio as "video" for now
+          status: 'ready',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      
+      if (episodeError) {
+        console.warn(`Episode ${i + 1} insert warning:`, episodeError)
+      }
+      
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       // Insert quiz questions for this episode
       const episodeQuizzes = course.quizQuestions.filter((_, qi) => 
         Math.floor(qi / Math.ceil(course.quizQuestions.length / course.episodes.length)) === i
       )
       
       for (const quiz of episodeQuizzes) {
+<<<<<<< HEAD
         const { error: quizError } = await supabase
+=======
+        await supabase
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
           .from('quiz_questions')
           .insert({
             id: crypto.randomUUID(),
@@ -724,6 +836,7 @@ async function saveCourseToDatabase(course: {
             time_limit: 15,
             created_at: new Date().toISOString()
           })
+<<<<<<< HEAD
         
         if (quizError) {
           console.warn('Quiz question save warning:', quizError)
@@ -733,6 +846,11 @@ async function saveCourseToDatabase(course: {
     
     console.log('✅ Course and all episodes saved successfully to database!')
     
+=======
+      }
+    }
+    
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
     return {
       id: course.id,
       title: course.title,
@@ -744,8 +862,23 @@ async function saveCourseToDatabase(course: {
       status: 'ready'
     }
   } catch (error) {
+<<<<<<< HEAD
     console.error('❌ Database save error:', error)
     throw error // Re-throw instead of returning partial data
+=======
+    console.error('Database save error:', error)
+    // Return the course even if DB save fails
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      thumbnailUrl: course.thumbnailUrl,
+      episodes: course.episodes,
+      quizQuestions: course.quizQuestions,
+      totalDuration: course.totalDuration,
+      status: 'ready'
+    }
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
   }
 }
 
@@ -770,10 +903,17 @@ function generateFallbackSegments(text: string, title: string): Array<{ title: s
   const segments: Array<{ title: string; script: string; keyPoints: string[] }> = []
   
   if (paragraphs.length === 0) {
+<<<<<<< HEAD
     // No content, create intro segment with LearnFlow branding
     segments.push({
       title: 'Introduction',
       script: `Welcome to ${title}, brought to you by LearnFlow AI. This training will cover important concepts and best practices for your professional development. Let's get started with the key topics that will help you succeed.`,
+=======
+    // No content, create intro segment
+    segments.push({
+      title: 'Introduction',
+      script: `Welcome to ${title}. This training will cover important concepts and best practices for your professional development. Let's get started with the key topics.`,
+>>>>>>> bb7468aebcc82a565ccbf7c4df7d8f3fb2cc7ffe
       keyPoints: ['Overview of key concepts', 'Best practices', 'Practical applications']
     })
     return segments
